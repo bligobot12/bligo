@@ -20,7 +20,7 @@ export default function RootLayout({ children }) {
                 <Link className="desktop-only" href="/about">About</Link>
                 <Link className="desktop-only" href="/contact">Contact</Link>
                 <Link href="/login">Login</Link>
-                <Link className="nav-cta" href="/app">App</Link>
+                <Link className="nav-cta" href="/home">App</Link>
               </nav>
             </div>
           </header>
