@@ -1,4 +1,6 @@
 import { redirect } from 'next/navigation';
+
+export const runtime = 'edge';
 import { createClient } from '../../lib/supabase/server';
 import { logoutAction } from '../auth/actions';
 
