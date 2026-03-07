@@ -1,5 +1,6 @@
 import './globals.css';
 import Link from 'next/link';
+import { Providers } from './providers';
 
 export const metadata = {
   title: 'Bligo',
@@ -10,24 +11,28 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <header className="site-header">
-          <div className="container nav">
-            <Link className="brand" href="/">bligo</Link>
-            <nav className="nav-links">
-              <Link href="/">Home</Link>
-              <Link href="/about">About</Link>
-              <Link href="/contact">Contact</Link>
-            </nav>
-          </div>
-        </header>
+        <Providers>
+          <header className="site-header">
+            <div className="container nav">
+              <Link className="brand" href="/">bligo</Link>
+              <nav className="nav-links">
+                <Link href="/">Home</Link>
+                <Link href="/about">About</Link>
+                <Link href="/contact">Contact</Link>
+                <Link href="/login">Login</Link>
+                <Link href="/app">App</Link>
+              </nav>
+            </div>
+          </header>
 
-        <main className="main">
-          <div className="container">{children}</div>
-        </main>
+          <main className="main">
+            <div className="container">{children}</div>
+          </main>
 
-        <footer className="site-footer">
-          <div className="container">© {new Date().getFullYear()} bligo. Built on Next.js + Cloudflare Pages.</div>
-        </footer>
+          <footer className="site-footer">
+            <div className="container">© {new Date().getFullYear()} bligo. Built on Next.js + Cloudflare Pages.</div>
+          </footer>
+        </Providers>
       </body>
     </html>
   );
