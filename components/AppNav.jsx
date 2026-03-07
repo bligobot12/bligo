@@ -10,6 +10,7 @@ const links = [
   { href: '/app/posts', label: 'Posts' },
   { href: '/app/messages', label: 'Messages' },
   { href: '/app/bot', label: 'Connect Bot' },
+  { href: '/app/backend-status', label: 'Backend' },
 ];
 
 export default function AppNav() {
