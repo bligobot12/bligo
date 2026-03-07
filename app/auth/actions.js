@@ -12,6 +12,9 @@ export async function loginAction(formData) {
   const password = String(formData.get('password') || '');
 
   const supabase = await createClient();
+  if (!supabase) {
+    redirect('/login?error=' + enc('Supabase env not configured in deployment.'));
+  }
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
@@ -27,6 +30,10 @@ export async function signupAction(formData) {
   const password = String(formData.get('password') || '');
 
   const supabase = await createClient();
+  if (!supabase) {
+    redirect('/signup?error=' + enc('Supabase env not configured in deployment.'));
+  }
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -67,6 +74,7 @@ export async function signupAction(formData) {
 
 export async function logoutAction() {
   const supabase = await createClient();
+  if (!supabase) redirect('/login');
   await supabase.auth.signOut();
   redirect('/login');
 }

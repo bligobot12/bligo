@@ -7,6 +7,10 @@ import { loginAction } from '../auth/actions';
 
 export default async function LoginPage({ searchParams }) {
   const supabase = await createClient();
+  if (!supabase) {
+    return <section className="card"><p>Auth is not configured in deployment environment.</p></section>;
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -8,6 +8,8 @@ import { saveProfileAction } from './actions';
 
 export default async function HomePage({ searchParams }) {
   const supabase = await createClient();
+  if (!supabase) redirect('/login?error=' + encodeURIComponent('Supabase env not configured'));
+
   const {
     data: { user },
   } = await supabase.auth.getUser();

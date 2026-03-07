@@ -15,6 +15,8 @@ function cleanUsername(v) {
 
 export async function saveProfileAction(formData) {
   const supabase = await createClient();
+  if (!supabase) redirect('/home?error=' + encodeURIComponent('Supabase env not configured in deployment.'));
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
