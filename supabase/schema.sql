@@ -53,31 +53,40 @@ alter table public.messages enable row level security;
 alter table public.bot_connections enable row level security;
 
 -- Basic RLS (can be tightened further)
-create policy if not exists "profiles selectable by all auth users" on public.profiles
+drop policy if exists "profiles selectable by all auth users" on public.profiles;
+create policy "profiles selectable by all auth users" on public.profiles
 for select to authenticated using (true);
 
-create policy if not exists "profiles insert self" on public.profiles
+drop policy if exists "profiles insert self" on public.profiles;
+create policy "profiles insert self" on public.profiles
 for insert to authenticated with check (auth.uid() = id);
 
-create policy if not exists "profiles update self" on public.profiles
+drop policy if exists "profiles update self" on public.profiles;
+create policy "profiles update self" on public.profiles
 for update to authenticated using (auth.uid() = id);
 
-create policy if not exists "posts select all auth" on public.posts
+drop policy if exists "posts select all auth" on public.posts;
+create policy "posts select all auth" on public.posts
 for select to authenticated using (true);
 
-create policy if not exists "posts insert self" on public.posts
+drop policy if exists "posts insert self" on public.posts;
+create policy "posts insert self" on public.posts
 for insert to authenticated with check (auth.uid() = user_id);
 
-create policy if not exists "posts delete self" on public.posts
+drop policy if exists "posts delete self" on public.posts;
+create policy "posts delete self" on public.posts
 for delete to authenticated using (auth.uid() = user_id);
 
-create policy if not exists "members select own memberships" on public.conversation_members
+drop policy if exists "members select own memberships" on public.conversation_members;
+create policy "members select own memberships" on public.conversation_members
 for select to authenticated using (auth.uid() = user_id);
 
-create policy if not exists "members insert self" on public.conversation_members
+drop policy if exists "members insert self" on public.conversation_members;
+create policy "members insert self" on public.conversation_members
 for insert to authenticated with check (auth.uid() = user_id);
 
-create policy if not exists "messages select where member" on public.messages
+drop policy if exists "messages select where member" on public.messages;
+create policy "messages select where member" on public.messages
 for select to authenticated using (
   exists (
     select 1 from public.conversation_members cm
@@ -85,7 +94,8 @@ for select to authenticated using (
   )
 );
 
-create policy if not exists "messages insert as sender member" on public.messages
+drop policy if exists "messages insert as sender member" on public.messages;
+create policy "messages insert as sender member" on public.messages
 for insert to authenticated with check (
   auth.uid() = sender_id and exists (
     select 1 from public.conversation_members cm
@@ -93,11 +103,14 @@ for insert to authenticated with check (
   )
 );
 
-create policy if not exists "bot select self" on public.bot_connections
+drop policy if exists "bot select self" on public.bot_connections;
+create policy "bot select self" on public.bot_connections
 for select to authenticated using (auth.uid() = user_id);
 
-create policy if not exists "bot upsert self" on public.bot_connections
+drop policy if exists "bot upsert self" on public.bot_connections;
+create policy "bot upsert self" on public.bot_connections
 for insert to authenticated with check (auth.uid() = user_id);
 
-create policy if not exists "bot update self" on public.bot_connections
+drop policy if exists "bot update self" on public.bot_connections;
+create policy "bot update self" on public.bot_connections
 for update to authenticated using (auth.uid() = user_id);
