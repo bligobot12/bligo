@@ -1,4 +1,5 @@
 import './globals.css';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Providers } from './providers';
 
@@ -14,7 +15,9 @@ export default function RootLayout({ children }) {
         <Providers>
           <header className="site-header">
             <div className="container nav">
-              <Link className="brand" href="/">bligo</Link>
+              <Link className="brand" href="/" aria-label="Bligo home">
+                <Image src="/bot.png" alt="Bligo" width={36} height={36} className="brand-logo" />
+              </Link>
               <nav className="nav-links">
                 <Link href="/">Home</Link>
                 <Link className="desktop-only" href="/about">About</Link>
