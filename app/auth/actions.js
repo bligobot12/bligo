@@ -40,11 +40,22 @@ export async function signupAction(formData) {
   }
 
   if (data.user?.id) {
-    await supabase.from('profiles').upsert({
+    const base = {
       id: data.user.id,
+      user_id: data.user.id,
       full_name: name || null,
+      display_name: name || null,
       username: email.split('@')[0],
-    });
+    };
+
+    const { error: upsertErr } = await supabase.from('profiles').upsert(base);
+    if (upsertErr) {
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        full_name: name || null,
+        username: email.split('@')[0],
+      });
+    }
   }
 
   if (!data.session) {
