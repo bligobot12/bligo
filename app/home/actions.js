@@ -81,3 +81,28 @@ export async function saveProfileAction(formData) {
 
   redirect('/home?saved=1');
 }
+
+export async function createPostAction(formData) {
+  const supabase = await createClient();
+  if (!supabase) redirect('/home?error=' + encodeURIComponent('Supabase env not configured in deployment.'));
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
+
+  const body = String(formData.get('post_body') || '').trim();
+  if (!body) redirect('/home?error=' + encodeURIComponent('Post text is required.'));
+
+  const { error } = await supabase.from('posts').insert({
+    user_id: user.id,
+    body,
+  });
+
+  if (error) {
+    redirect('/home?error=' + encodeURIComponent(error.message));
+  }
+
+  redirect('/home?posted=1');
+}
