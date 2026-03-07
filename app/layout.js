@@ -17,10 +17,10 @@ export default function RootLayout({ children }) {
               <Link className="brand" href="/">bligo</Link>
               <nav className="nav-links">
                 <Link href="/">Home</Link>
-                <Link href="/about">About</Link>
-                <Link href="/contact">Contact</Link>
+                <Link className="desktop-only" href="/about">About</Link>
+                <Link className="desktop-only" href="/contact">Contact</Link>
                 <Link href="/login">Login</Link>
-                <Link href="/app">App</Link>
+                <Link className="nav-cta" href="/app">App</Link>
               </nav>
             </div>
           </header>

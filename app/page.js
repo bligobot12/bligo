@@ -19,6 +19,7 @@ export default function HomePage() {
   return (
     <>
       <section className="hero">
+        <span className="hero-kicker">Now live: Product MVP</span>
         <h1>Real connections, curated by AI.</h1>
         <p>
           Bligo helps people discover the right conversations and opportunities faster.
