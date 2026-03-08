@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
+import { generateMatchCandidatesAction } from '../matching/actions';
 
 function cleanUsername(v) {
   return String(v || '')
@@ -39,7 +40,7 @@ export async function saveProfileBasicsAction(formData) {
   const visibilityRaw = String(formData.get('visibility') || 'connections').trim();
   const visibility = visibilityRaw || 'connections';
 
-  const { error } = await supabase.from('profiles').upsert({
+  const payload = {
     id: user.id,
     user_id: user.id,
     username,
@@ -51,7 +52,15 @@ export async function saveProfileBasicsAction(formData) {
     visibility,
     onboarding_complete: false,
     updated_at: new Date().toISOString(),
-  });
+  };
+
+  let { error } = await supabase.from('profiles').upsert(payload, { onConflict: 'user_id' });
+
+  if (error) {
+    // Fallback for any env still keyed by id conflict
+    const fallback = await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
+    error = fallback.error;
+  }
 
   if (error) {
     redirect('/onboarding?error=' + encodeURIComponent(error.message));
@@ -99,6 +108,9 @@ export async function saveIntroPreferencesAction(formData) {
   if (profileError) {
     redirect('/onboarding?step=2&error=' + encodeURIComponent(profileError.message));
   }
+
+  // Re-run matching after onboarding/profile signal updates
+  await generateMatchCandidatesAction();
 
   redirect('/home?onboarded=1');
 }

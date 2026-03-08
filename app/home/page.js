@@ -135,21 +135,11 @@ export default async function HomePage({ searchParams }) {
           {(suggestedIntros || []).length === 0 ? <p className="muted">No suggested intros yet. Add interests/goals and build a few connections first.</p> : null}
         </div>
 
-        <div className="form-col" style={{ marginTop: 10 }}>
-          <p><strong>Email:</strong> {user.email}</p>
-          <p><strong>Username:</strong> {profile.username || '—'}</p>
-          <p><strong>Display name:</strong> {profile.display_name || '—'}</p>
-          <p><strong>Headline:</strong> {profile.headline || '—'}</p>
-          <p><strong>City:</strong> {profile.city || '—'}</p>
-          <p><strong>Region:</strong> {profile.region || '—'}</p>
-          <p><strong>Interests:</strong> {(profile.interests || []).join(', ') || '—'}</p>
-          <p><strong>Goals:</strong> {(profile.goals || []).join(', ') || '—'}</p>
-          <p><strong>Visibility:</strong> {profile.visibility || 'connections'}</p>
-          <p><strong>Onboarding complete:</strong> {profile.onboarding_complete ? 'true' : 'false'}</p>
-          <p><strong>Intro types:</strong> {(intro.intro_types || []).join(', ') || '—'}</p>
-          <p><strong>Open to meeting:</strong> {intro.open_to_meeting ? 'Yes' : 'No'}</p>
-          <p><strong>Preferred locations:</strong> {(intro.preferred_locations || []).join(', ') || '—'}</p>
-          <p><strong>Notes:</strong> {intro.notes || '—'}</p>
+        <div className="post-item" style={{ marginTop: 12 }}>
+          <p className="muted" style={{ marginBottom: 6 }}>Your profile</p>
+          <h3 style={{ margin: 0 }}>{profile.display_name || profile.username || 'Unnamed user'}</h3>
+          <p className="muted" style={{ marginTop: 4 }}>{profile.headline || 'Add a headline in onboarding'}</p>
+          <p className="muted" style={{ marginTop: 4 }}>{profile.city || 'City not set'}</p>
         </div>
 
         <div className="actions">
