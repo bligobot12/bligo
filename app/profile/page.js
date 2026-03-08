@@ -1,0 +1,72 @@
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+
+export const runtime = 'edge';
+
+import { createClient } from '../../lib/supabase/server';
+
+function renderList(values) {
+  if (!values || values.length === 0) return '—';
+  return values.join(', ');
+}
+
+export default async function ProfilePage() {
+  const supabase = await createClient();
+  if (!supabase) redirect('/login?error=' + encodeURIComponent('Supabase env not configured'));
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('user_id, username, display_name, headline, city, interests, goals, onboarding_complete')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  const { data: prefs } = await supabase
+    .from('intro_preferences')
+    .select('intro_types')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!profile || !profile.onboarding_complete) redirect('/onboarding');
+
+  return (
+    <section className="card" style={{ maxWidth: 760 }}>
+      <h2>My Profile</h2>
+      <div className="form-col" style={{ marginTop: 8 }}>
+        <div className="post-item">
+          <p className="muted">Display name</p>
+          <p>{profile.display_name || profile.username || '—'}</p>
+        </div>
+        <div className="post-item">
+          <p className="muted">Headline</p>
+          <p>{profile.headline || '—'}</p>
+        </div>
+        <div className="post-item">
+          <p className="muted">City</p>
+          <p>{profile.city || '—'}</p>
+        </div>
+        <div className="post-item">
+          <p className="muted">Interests</p>
+          <p>{renderList(profile.interests)}</p>
+        </div>
+        <div className="post-item">
+          <p className="muted">Goals</p>
+          <p>{renderList(profile.goals)}</p>
+        </div>
+        <div className="post-item">
+          <p className="muted">Intro preferences</p>
+          <p>{renderList(prefs?.intro_types || [])}</p>
+        </div>
+      </div>
+      <div className="actions">
+        <Link className="button primary" href="/onboarding?step=1">Edit onboarding</Link>
+        <Link className="button" href="/home">Back home</Link>
+      </div>
+    </section>
+  );
+}

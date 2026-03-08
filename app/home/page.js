@@ -142,12 +142,12 @@ export default async function HomePage({ searchParams }) {
           {(suggestedIntros || []).length === 0 ? <p className="muted">No suggested intros yet. Add interests/goals and build a few connections first.</p> : null}
         </div>
 
-        <div className="post-item" style={{ marginTop: 12 }}>
+        <Link href="/profile" className="post-item" style={{ marginTop: 12, display: 'block' }}>
           <p className="muted" style={{ marginBottom: 6 }}>Your profile</p>
           <h3 style={{ margin: 0 }}>{profile.display_name || profile.username || 'Unnamed user'}</h3>
           <p className="muted" style={{ marginTop: 4 }}>{profile.headline || 'Add a headline in onboarding'}</p>
           <p className="muted" style={{ marginTop: 4 }}>{profile.city || 'City not set'}</p>
-        </div>
+        </Link>
 
         <div className="actions">
           <Link className="button" href="/connections">Find connections</Link>
