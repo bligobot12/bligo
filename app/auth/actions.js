@@ -54,6 +54,7 @@ export async function signupAction(formData) {
       full_name: name || null,
       display_name: name || null,
       username: email.split('@')[0],
+      updated_at: new Date().toISOString(),
     };
 
     const { error: upsertErr } = await supabase.from('profiles').upsert(base);
@@ -62,6 +63,7 @@ export async function signupAction(formData) {
         id: data.user.id,
         full_name: name || null,
         username: email.split('@')[0],
+        updated_at: new Date().toISOString(),
       });
     }
   }
@@ -70,7 +72,7 @@ export async function signupAction(formData) {
     redirect('/login?message=' + enc('Check your email to confirm your account, then log in.'));
   }
 
-  redirect('/home');
+  redirect('/onboarding');
 }
 
 export async function logoutAction() {

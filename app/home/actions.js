@@ -13,9 +13,9 @@ function cleanUsername(v) {
     .slice(0, 30);
 }
 
-export async function saveProfileAction(formData) {
+export async function saveProfileBasicsAction(formData) {
   const supabase = await createClient();
-  if (!supabase) redirect('/home?error=' + encodeURIComponent('Supabase env not configured in deployment.'));
+  if (!supabase) redirect('/onboarding?error=' + encodeURIComponent('Supabase env not configured.'));
 
   const {
     data: { user },
@@ -26,65 +26,41 @@ export async function saveProfileAction(formData) {
   const username = cleanUsername(formData.get('username')) || `user_${user.id.slice(0, 8)}`;
   const displayName = String(formData.get('display_name') || '').trim();
   const bio = String(formData.get('bio') || '').trim();
-  const avatarFile = formData.get('avatar');
+  const location = String(formData.get('location') || '').trim();
+  const goals = String(formData.get('goals') || '').trim();
+  const interests = String(formData.get('interests') || '').trim();
 
-  let avatarUrl = null;
-
-  if (avatarFile && typeof avatarFile === 'object' && 'arrayBuffer' in avatarFile && avatarFile.size > 0) {
-    const ext = (avatarFile.name?.split('.').pop() || 'png').toLowerCase();
-    const filePath = `${user.id}/${Date.now()}.${ext}`;
-    const arrayBuffer = await avatarFile.arrayBuffer();
-
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, arrayBuffer, {
-        contentType: avatarFile.type || 'image/png',
-        upsert: true,
-      });
-
-    if (uploadError) {
-      redirect('/home?error=' + encodeURIComponent(`Avatar upload failed: ${uploadError.message}`));
-    }
-
-    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-    avatarUrl = data.publicUrl;
-  }
-
-  const updatePayload = {
+  const payload = {
     id: user.id,
     user_id: user.id,
     username,
     display_name: displayName || null,
     full_name: displayName || null,
-    bio,
-    ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
+    bio: bio || null,
+    location: location || null,
+    goals: goals || null,
+    interests: interests || null,
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await supabase.from('profiles').upsert(updatePayload);
-
+  const { error } = await supabase.from('profiles').upsert(payload);
   if (error) {
-    // fallback for older schema without user_id/display_name
-    const fallback = {
-      id: user.id,
-      username,
-      full_name: displayName || null,
-      bio,
-      ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
-      updated_at: new Date().toISOString(),
-    };
-    const { error: fallbackError } = await supabase.from('profiles').upsert(fallback);
-    if (fallbackError) {
-      redirect('/home?error=' + encodeURIComponent(fallbackError.message));
-    }
+    redirect('/onboarding?error=' + encodeURIComponent(error.message));
   }
 
-  redirect('/home?saved=1');
+  redirect('/onboarding?step=2');
 }
 
-export async function createPostAction(formData) {
+function parseList(value) {
+  return String(value || '')
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
+export async function saveIntroPreferencesAction(formData) {
   const supabase = await createClient();
-  if (!supabase) redirect('/home?error=' + encodeURIComponent('Supabase env not configured in deployment.'));
+  if (!supabase) redirect('/onboarding?step=2&error=' + encodeURIComponent('Supabase env not configured.'));
 
   const {
     data: { user },
@@ -92,17 +68,24 @@ export async function createPostAction(formData) {
 
   if (!user) redirect('/login');
 
-  const body = String(formData.get('post_body') || '').trim();
-  if (!body) redirect('/home?error=' + encodeURIComponent('Post text is required.'));
+  const preferredIndustries = parseList(formData.get('preferred_industries'));
+  const preferredLocations = parseList(formData.get('preferred_locations'));
+  const introGoal = String(formData.get('intro_goal') || '').trim();
+  const dealbreakers = String(formData.get('dealbreakers') || '').trim();
+  const visibility = String(formData.get('visibility') || 'private').trim() || 'private';
 
-  const { error } = await supabase.from('posts').insert({
+  const { error } = await supabase.from('intro_preferences').upsert({
     user_id: user.id,
-    body,
+    preferred_industries: preferredIndustries,
+    preferred_locations: preferredLocations,
+    intro_goal: introGoal || null,
+    dealbreakers: dealbreakers || null,
+    visibility,
   });
 
   if (error) {
-    redirect('/home?error=' + encodeURIComponent(error.message));
+    redirect('/onboarding?step=2&error=' + encodeURIComponent(error.message));
   }
 
-  redirect('/home?posted=1');
+  redirect('/home?onboarded=1');
 }
