@@ -75,7 +75,14 @@ export default async function OnboardingPage({ searchParams }) {
           <button className="button primary" type="submit">Continue</button>
         </form>
       ) : (
-        <form className="form-col" action={saveIntroPreferencesAction}>
+        <div className="form-col">
+          <div className="post-item">
+            <p className="muted" style={{ marginBottom: 6 }}>Want to skip manual setup?</p>
+            <p style={{ marginTop: 0 }}>Connect your AI agent to fill this in automatically.</p>
+            <a className="button" href="/settings" style={{ marginTop: 8, display: 'inline-block' }}>Connect your AI agent</a>
+          </div>
+
+          <form className="form-col" action={saveIntroPreferencesAction}>
           <label className="muted">Intro types (comma-separated)</label>
           <p className="muted" style={{ marginTop: 4 }}>Pick the kinds of introductions you want most (friends, professional, activity, etc.).</p>
           <input className="input" name="intro_types" defaultValue={(prefs?.intro_types || []).join(', ')} placeholder="friends, professional, activity" />
@@ -96,7 +103,8 @@ export default async function OnboardingPage({ searchParams }) {
             <a className="button" href="/onboarding">Back</a>
             <button className="button primary" type="submit">Finish onboarding</button>
           </div>
-        </form>
+          </form>
+        </div>
       )}
     </section>
   );

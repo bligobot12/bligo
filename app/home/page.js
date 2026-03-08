@@ -30,6 +30,12 @@ export default async function HomePage({ searchParams }) {
     .eq('user_id', user.id)
     .maybeSingle();
 
+  const { data: botConnection } = await supabase
+    .from('bot_connections')
+    .select('bot_name, bot_type, status, last_active')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
   if (!profile || !intro || !profile.onboarding_complete) {
     redirect('/onboarding');
   }
@@ -146,6 +152,11 @@ export default async function HomePage({ searchParams }) {
           <h3 style={{ margin: 0 }}>{profile.display_name || profile.username || 'Unnamed user'}</h3>
           <p className="muted" style={{ marginTop: 4 }}>{profile.headline || 'Add a headline in onboarding'}</p>
           <p className="muted" style={{ marginTop: 4 }}>{profile.city || 'City not set'}</p>
+          {botConnection?.status === 'connected' && botConnection?.last_active ? (
+            <p className="muted" style={{ marginTop: 4 }}>
+              Updated by bot ({botConnection.bot_name || botConnection.bot_type || 'agent'}) · {new Date(botConnection.last_active).toLocaleString()}
+            </p>
+          ) : null}
         </Link>
 
         <div className="actions">

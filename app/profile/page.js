@@ -32,12 +32,27 @@ export default async function ProfilePage() {
     .eq('user_id', user.id)
     .maybeSingle();
 
+  const { data: botConnection } = await supabase
+    .from('bot_connections')
+    .select('bot_name, bot_type, status, last_active')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
   if (!profile || !profile.onboarding_complete) redirect('/onboarding');
 
   return (
     <section className="card" style={{ maxWidth: 760 }}>
       <h2>My Profile</h2>
       <div className="form-col" style={{ marginTop: 8 }}>
+        {botConnection?.status === 'connected' && botConnection?.last_active ? (
+          <div className="post-item">
+            <p className="muted">Profile update source</p>
+            <p>
+              Last updated by bot ({botConnection.bot_name || botConnection.bot_type || 'agent'}) on{' '}
+              {new Date(botConnection.last_active).toLocaleString()}
+            </p>
+          </div>
+        ) : null}
         <div className="post-item">
           <p className="muted">Display name</p>
           <p>{profile.display_name || profile.username || '—'}</p>
