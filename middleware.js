@@ -28,10 +28,10 @@ export async function middleware(request) {
   });
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (!user && (request.nextUrl.pathname.startsWith('/home') || request.nextUrl.pathname.startsWith('/onboarding') || request.nextUrl.pathname.startsWith('/settings') || request.nextUrl.pathname.startsWith('/connections') || request.nextUrl.pathname.startsWith('/profile'))) {
+  if (!session && (request.nextUrl.pathname.startsWith('/home') || request.nextUrl.pathname.startsWith('/onboarding') || request.nextUrl.pathname.startsWith('/settings') || request.nextUrl.pathname.startsWith('/connections') || request.nextUrl.pathname.startsWith('/profile'))) {
     const loginUrl = new URL('/login', request.url);
     return NextResponse.redirect(loginUrl);
   }
