@@ -142,7 +142,19 @@ export default async function HomePage({ searchParams }) {
               </div>
             );
           })}
-          {(suggestedIntros || []).length === 0 ? <p className="muted">No suggested intros yet. Add interests/goals and build a few connections first.</p> : null}
+          {(suggestedIntros || []).length === 0 ? (
+            <div className="post-item">
+              <strong>No introductions yet — we’re warming things up.</strong>
+              <p className="muted" style={{ marginTop: 6 }}>
+                Bligo is looking for overlap across your interests, goals, and trusted graph. Add a little more profile detail,
+                send a few connection requests, and check back soon.
+              </p>
+              <div className="actions" style={{ marginTop: 10 }}>
+                <Link className="button" href="/connections">Find connections</Link>
+                <Link className="button" href="/onboarding?step=1">Improve profile</Link>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <Link href="/profile" className="post-item" style={{ marginTop: 12, display: 'block' }}>

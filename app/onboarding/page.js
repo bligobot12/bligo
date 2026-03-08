@@ -35,6 +35,11 @@ export default async function OnboardingPage({ searchParams }) {
     <section className="card" style={{ maxWidth: 760 }}>
       <h2>Onboarding</h2>
       <p className="muted">Step {step} of 2</p>
+      <p className="muted" style={{ marginTop: -6 }}>
+        {step === 1
+          ? 'Tell people what you care about so Bligo can find high-fit intros.'
+          : 'Set your intro preferences so suggestions are practical and relevant.'}
+      </p>
       {error ? <p style={{ color: '#ff9da3' }}>{error}</p> : null}
 
       {step === 1 ? (
@@ -71,7 +76,10 @@ export default async function OnboardingPage({ searchParams }) {
             <option value="private">Private</option>
           </select>
 
-          <button className="button primary" type="submit">Continue</button>
+          <div className="actions">
+            <a className="button" href="/home">Back to home</a>
+            <button className="button primary" type="submit">Save and continue</button>
+          </div>
         </form>
       ) : (
         <div className="form-col">
@@ -82,12 +90,20 @@ export default async function OnboardingPage({ searchParams }) {
           </div>
 
           <form className="form-col" action={saveIntroPreferencesAction}>
-          <label className="muted">Intro types (comma-separated)</label>
+          <TagInput
+            name="intro_types"
+            label="Intro types"
+            defaultTags={prefs?.intro_types || []}
+            placeholder="friends, professional, activity"
+          />
           <p className="muted" style={{ marginTop: 4 }}>Pick the kinds of introductions you want most (friends, professional, activity, etc.).</p>
-          <input className="input" name="intro_types" defaultValue={(prefs?.intro_types || []).join(', ')} placeholder="friends, professional, activity" />
 
-          <label className="muted">Preferred locations (comma-separated)</label>
-          <input className="input" name="preferred_locations" defaultValue={(prefs?.preferred_locations || []).join(', ')} />
+          <TagInput
+            name="preferred_locations"
+            label="Preferred locations"
+            defaultTags={prefs?.preferred_locations || []}
+            placeholder="White Plains, NYC, Westchester"
+          />
 
           <label className="muted">Open to meeting?</label>
           <select className="input" name="open_to_meeting" defaultValue={prefs?.open_to_meeting === false ? 'false' : 'true'}>
@@ -96,7 +112,7 @@ export default async function OnboardingPage({ searchParams }) {
           </select>
 
           <label className="muted">Notes</label>
-          <textarea className="input" name="notes" rows={3} defaultValue={prefs?.notes || ''} />
+          <textarea className="input" name="notes" rows={3} defaultValue={prefs?.notes || ''} placeholder="Anything we should consider for intros?" />
 
           <div className="actions">
             <a className="button" href="/onboarding">Back</a>
