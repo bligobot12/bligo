@@ -28,6 +28,7 @@ export default async function RootLayout({ children }) {
                 <Link href="/">Home</Link>
                 <Link className="desktop-only" href="/about">About</Link>
                 <Link className="desktop-only" href="/contact">Contact</Link>
+                {user ? <Link href="/settings">Settings</Link> : null}
                 {user ? <Link href="/logout">Logout</Link> : <Link href="/login">Login</Link>}
                 <Link className="nav-cta" href="/home">App</Link>
               </nav>
