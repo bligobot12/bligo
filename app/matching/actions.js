@@ -154,10 +154,10 @@ export async function generateMatchCandidatesAction() {
     .eq('user_b_id', currentUserId);
   if (clearSelfError) return { ok: false, error: clearSelfError.message };
 
-  const { error: clearError } = await supabase.from('match_candidates').delete().eq('user_a_id', currentUserId);
-  if (clearError) return { ok: false, error: clearError.message };
-
   if (top.length > 0) {
+    const { error: clearError } = await supabase.from('match_candidates').delete().eq('user_a_id', currentUserId);
+    if (clearError) return { ok: false, error: clearError.message };
+
     const { error: insertError } = await supabase
       .from('match_candidates')
       .upsert(top, { onConflict: 'user_a_id,user_b_id' });

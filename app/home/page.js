@@ -110,7 +110,7 @@ export default async function HomePage({ searchParams }) {
         <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
           <h3 style={{ margin: 0 }}>Suggested introductions</h3>
           <form action={runMatchingNowAction}>
-            <button className="button" type="submit">Find my matches</button>
+            <button className="button secondary" type="submit">Find my matches</button>
           </form>
         </div>
         <div className="feed" style={{ marginTop: 8 }}>
