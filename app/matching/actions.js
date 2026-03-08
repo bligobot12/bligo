@@ -32,14 +32,23 @@ export async function generateMatchCandidatesAction() {
 
   if (!user) return { ok: false, error: 'Not authenticated' };
 
+  const currentUserId = user.id;
+
   const { data: profiles, error: profilesError } = await supabase
     .from('profiles')
     .select('user_id, display_name, city, interests, goals')
-    .not('user_id', 'is', null);
+    .not('user_id', 'is', null)
+    .neq('user_id', currentUserId);
 
   if (profilesError) return { ok: false, error: profilesError.message };
 
-  const me = (profiles || []).find((p) => p.user_id === user.id);
+  const { data: me, error: meError } = await supabase
+    .from('profiles')
+    .select('user_id, display_name, city, interests, goals')
+    .eq('user_id', currentUserId)
+    .maybeSingle();
+
+  if (meError) return { ok: false, error: meError.message };
   if (!me) return { ok: false, error: 'Current user profile not found' };
 
   const { data: connections, error: connectionsError } = await supabase
@@ -66,11 +75,11 @@ export async function generateMatchCandidatesAction() {
   const myInterests = normalizeTextArray(me.interests);
   const myGoals = normalizeTextArray(me.goals);
   const myCity = normalizeCity(me.city);
-  const myNeighbors = neighbors.get(user.id) || new Set();
+  const myNeighbors = neighbors.get(currentUserId) || new Set();
 
   const scored = [];
   for (const other of profiles || []) {
-    if (!other?.user_id || other.user_id === user.id) continue;
+    if (!other?.user_id || other.user_id === currentUserId) continue;
 
     const otherInterests = normalizeTextArray(other.interests);
     const otherGoals = normalizeTextArray(other.goals);
@@ -107,7 +116,7 @@ export async function generateMatchCandidatesAction() {
         ? `You should meet ${displayName} now because ${reasonParts.join(', ')}.`
         : `You should meet ${displayName} now based on overlapping profile signals.`;
 
-    const isDirect = directSet.has(`${user.id}:${other.user_id}`);
+    const isDirect = directSet.has(`${currentUserId}:${other.user_id}`);
     const reasonTrustPath = isDirect
       ? 'Direct connection'
       : mutualConnections.length > 0
@@ -115,7 +124,7 @@ export async function generateMatchCandidatesAction() {
         : 'Shared interests';
 
     scored.push({
-      user_a_id: user.id,
+      user_a_id: currentUserId,
       user_b_id: other.user_id,
       score,
       reason_why_now: reasonWhyNow,
@@ -132,7 +141,15 @@ export async function generateMatchCandidatesAction() {
   scored.sort((a, b) => b.score - a.score);
   const top = scored.slice(0, 3);
 
-  const { error: clearError } = await supabase.from('match_candidates').delete().eq('user_a_id', user.id);
+  // Clean any stale self-match rows and reset this user's candidate set
+  const { error: clearSelfError } = await supabase
+    .from('match_candidates')
+    .delete()
+    .eq('user_a_id', currentUserId)
+    .eq('user_b_id', currentUserId);
+  if (clearSelfError) return { ok: false, error: clearSelfError.message };
+
+  const { error: clearError } = await supabase.from('match_candidates').delete().eq('user_a_id', currentUserId);
   if (clearError) return { ok: false, error: clearError.message };
 
   if (top.length > 0) {
