@@ -108,7 +108,7 @@ export async function generateMatchCandidatesAction() {
       ).toFixed(4)
     );
 
-    if (score < 0.3) continue;
+    if (score < 0.1) continue;
 
     const displayName = other.display_name || 'this person';
     const reasonParts = [];
