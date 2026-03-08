@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 
 
 import { createClient } from '../../lib/supabase/server';
-import { logoutAction } from '../auth/actions';
 import { acceptConnectionRequestAction, declineConnectionRequestAction } from '../connections/actions';
 import { generateMatchCandidatesAction, respondToIntroAction, runMatchingNowAction } from '../matching/actions';
 
@@ -161,9 +160,6 @@ export default async function HomePage({ searchParams }) {
         <div className="actions">
           <Link className="button" href="/connections">Find connections</Link>
           <Link className="button" href="/onboarding?step=1">Edit onboarding</Link>
-          <form action={logoutAction}>
-            <button className="button" type="submit">Log out</button>
-          </form>
         </div>
       </section>
     </div>
