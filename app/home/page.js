@@ -45,7 +45,7 @@ export default async function HomePage({ searchParams }) {
 
   const { data: suggestedIntros } = await supabase
     .from('match_candidates')
-    .select('id, user_a_id, user_b_id, score, reason_why_now, reason_trust_path, shared_signals, status')
+    .select('id, user_a_id, user_b_id, reason_why_now, reason_trust_path, shared_signals, status')
     .eq('user_a_id', user.id)
     .eq('status', 'pending')
     .order('score', { ascending: false })
@@ -66,7 +66,6 @@ export default async function HomePage({ searchParams }) {
   const declined = params?.declined === '1';
   const responded = params?.responded === '1';
   const matched = params?.matched === '1';
-  const matchCount = Number(params?.match_count || 0);
   const error = params?.error ? decodeURIComponent(params.error) : '';
 
   return (
@@ -77,7 +76,7 @@ export default async function HomePage({ searchParams }) {
         {accepted ? <p style={{ color: '#8fd19e' }}>Connection request accepted.</p> : null}
         {declined ? <p style={{ color: '#8fd19e' }}>Connection request declined.</p> : null}
         {responded ? <p style={{ color: '#8fd19e' }}>Intro response saved.</p> : null}
-        {matched ? <p style={{ color: '#8fd19e' }}>Matching completed. Candidates found: {matchCount}</p> : null}
+        {matched ? <p style={{ color: '#8fd19e' }}>Matching completed. New introductions are ready.</p> : null}
         {error ? <p style={{ color: '#ff9da3' }}>{error}</p> : null}
 
         <h3 style={{ marginTop: 16 }}>Incoming connection requests</h3>
