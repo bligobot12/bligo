@@ -25,7 +25,7 @@ export default async function ConnectionsPage({ searchParams }) {
   if (q.length > 0) {
     const { data, error: peopleError } = await supabase
       .from('profiles')
-      .select('user_id, username, display_name')
+      .select('user_id, username, display_name, headline, city')
       .neq('user_id', user.id)
       .or(`username.ilike.%${q}%,display_name.ilike.%${q}%`)
       .limit(25);
@@ -55,6 +55,22 @@ export default async function ConnectionsPage({ searchParams }) {
     connectionMap.set(otherId, row.status || 'pending');
   }
 
+  const { data: outgoingPending } = await supabase
+    .from('connections')
+    .select('to_user_id, status, profiles:to_user_id(username, display_name, headline, city)')
+    .eq('from_user_id', user.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(25);
+
+  const { data: incomingPending } = await supabase
+    .from('connections')
+    .select('from_user_id, status, profiles:from_user_id(username, display_name, headline, city)')
+    .eq('to_user_id', user.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(25);
+
   return (
     <div className="form-col" style={{ maxWidth: 860 }}>
       <section className="card">
@@ -72,6 +88,38 @@ export default async function ConnectionsPage({ searchParams }) {
           </div>
         </form>
 
+        <h3 style={{ marginTop: 16 }}>Incoming requests</h3>
+        <div className="feed" style={{ marginTop: 8 }}>
+          {(incomingPending || []).map((req) => {
+            const from = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles;
+            return (
+              <div key={req.from_user_id} className="post-item">
+                <strong>{from?.display_name || from?.username || req.from_user_id}</strong>
+                <p className="muted">{from?.headline || 'No headline yet'}</p>
+                <p className="muted">{from?.city || 'City not set'}</p>
+              </div>
+            );
+          })}
+          {(incomingPending || []).length === 0 ? <p className="muted">No incoming requests.</p> : null}
+        </div>
+
+        <h3 style={{ marginTop: 16 }}>Pending sent</h3>
+        <div className="feed" style={{ marginTop: 8 }}>
+          {(outgoingPending || []).map((req) => {
+            const to = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles;
+            return (
+              <div key={req.to_user_id} className="post-item">
+                <strong>{to?.display_name || to?.username || req.to_user_id}</strong>
+                <p className="muted">{to?.headline || 'No headline yet'}</p>
+                <p className="muted">{to?.city || 'City not set'}</p>
+                <p className="muted">Pending</p>
+              </div>
+            );
+          })}
+          {(outgoingPending || []).length === 0 ? <p className="muted">No pending requests sent.</p> : null}
+        </div>
+
+        <h3 style={{ marginTop: 16 }}>Search results</h3>
         <div className="feed" style={{ marginTop: 12 }}>
           {q.length === 0 ? <p className="muted">Enter a search query to find people.</p> : null}
           {q.length > 0 && people.length === 0 ? <p className="muted">No users found.</p> : null}
@@ -83,7 +131,8 @@ export default async function ConnectionsPage({ searchParams }) {
               <div key={p.user_id} className="post-item" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
                 <div>
                   <strong>{p.display_name || p.username || p.user_id}</strong>
-                  <p className="muted">@{p.username || 'no-username'}</p>
+                  <p className="muted">{p.headline || 'No headline yet'}</p>
+                  <p className="muted">{p.city || 'City not set'}</p>
                 </div>
 
                 {canSend ? (
