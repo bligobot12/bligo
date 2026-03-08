@@ -6,6 +6,7 @@ export const runtime = 'edge';
 import { createClient } from '../../lib/supabase/server';
 import { logoutAction } from '../auth/actions';
 import { acceptConnectionRequestAction, declineConnectionRequestAction } from '../connections/actions';
+import { generateMatchCandidatesAction, respondToIntroAction } from '../matching/actions';
 
 export default async function HomePage({ searchParams }) {
   const supabase = await createClient();
@@ -40,10 +41,30 @@ export default async function HomePage({ searchParams }) {
     .eq('status', 'pending')
     .order('created_at', { ascending: false });
 
+  await generateMatchCandidatesAction();
+
+  const { data: suggestedIntros } = await supabase
+    .from('match_candidates')
+    .select('id, user_a_id, user_b_id, score, reason_why_now, reason_trust_path, shared_signals, status')
+    .eq('user_a_id', user.id)
+    .eq('status', 'pending')
+    .order('score', { ascending: false })
+    .limit(3);
+
+  const matchIds = (suggestedIntros || []).map((row) => row.user_b_id);
+  const { data: matchedProfiles } = matchIds.length
+    ? await supabase
+        .from('profiles')
+        .select('user_id, display_name, headline')
+        .in('user_id', matchIds)
+    : { data: [] };
+  const matchedById = new Map((matchedProfiles || []).map((p) => [p.user_id, p]));
+
   const params = await searchParams;
   const onboarded = params?.onboarded === '1';
   const accepted = params?.accepted === '1';
   const declined = params?.declined === '1';
+  const responded = params?.responded === '1';
   const error = params?.error ? decodeURIComponent(params.error) : '';
 
   return (
@@ -54,6 +75,7 @@ export default async function HomePage({ searchParams }) {
         {onboarded ? <p style={{ color: '#8fd19e' }}>Onboarding complete. Your profile is saved.</p> : null}
         {accepted ? <p style={{ color: '#8fd19e' }}>Connection request accepted.</p> : null}
         {declined ? <p style={{ color: '#8fd19e' }}>Connection request declined.</p> : null}
+        {responded ? <p style={{ color: '#8fd19e' }}>Intro response saved.</p> : null}
         {error ? <p style={{ color: '#ff9da3' }}>{error}</p> : null}
 
         <h3 style={{ marginTop: 16 }}>Incoming connection requests</h3>
@@ -81,6 +103,36 @@ export default async function HomePage({ searchParams }) {
             );
           })}
           {(incomingRequests || []).length === 0 ? <p className="muted">No pending requests.</p> : null}
+        </div>
+
+        <h3 style={{ marginTop: 16 }}>Suggested introductions</h3>
+        <div className="feed" style={{ marginTop: 8 }}>
+          {(suggestedIntros || []).map((match) => {
+            const matched = matchedById.get(match.user_b_id);
+            return (
+              <div key={match.id} className="post-item">
+                <div>
+                  <strong>{matched?.display_name || 'Suggested person'}</strong>
+                  <p className="muted">{matched?.headline || 'No headline yet'}</p>
+                  <p style={{ marginTop: 6 }}>{match.reason_why_now || 'Potentially strong fit based on your profile signals.'}</p>
+                  <p className="muted" style={{ marginTop: 4 }}>Trust path: {match.reason_trust_path || 'Shared interests'} · Score: {Number(match.score || 0).toFixed(2)}</p>
+                </div>
+                <div className="actions" style={{ marginTop: 10 }}>
+                  <form action={respondToIntroAction}>
+                    <input type="hidden" name="match_candidate_id" value={match.id} />
+                    <input type="hidden" name="response" value="accept" />
+                    <button className="button" type="submit">Accept</button>
+                  </form>
+                  <form action={respondToIntroAction}>
+                    <input type="hidden" name="match_candidate_id" value={match.id} />
+                    <input type="hidden" name="response" value="decline" />
+                    <button className="button" type="submit">Decline</button>
+                  </form>
+                </div>
+              </div>
+            );
+          })}
+          {(suggestedIntros || []).length === 0 ? <p className="muted">No suggested intros yet. Add interests/goals and build a few connections first.</p> : null}
         </div>
 
         <div className="form-col" style={{ marginTop: 10 }}>
