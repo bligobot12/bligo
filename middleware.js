@@ -31,7 +31,7 @@ export async function middleware(request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && (request.nextUrl.pathname.startsWith('/home') || request.nextUrl.pathname.startsWith('/onboarding'))) {
+  if (!user && (request.nextUrl.pathname.startsWith('/home') || request.nextUrl.pathname.startsWith('/onboarding') || request.nextUrl.pathname.startsWith('/settings') || request.nextUrl.pathname.startsWith('/connections') || request.nextUrl.pathname.startsWith('/profile'))) {
     const loginUrl = new URL('/login', request.url);
     return NextResponse.redirect(loginUrl);
   }
@@ -40,5 +40,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/home/:path*', '/onboarding/:path*', '/messages/:path*'],
+  matcher: ['/home/:path*', '/onboarding/:path*', '/messages/:path*', '/settings/:path*', '/connections/:path*', '/profile/:path*'],
 };
