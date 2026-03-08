@@ -6,7 +6,7 @@ export const runtime = 'edge';
 import { createClient } from '../../lib/supabase/server';
 import { logoutAction } from '../auth/actions';
 import { acceptConnectionRequestAction, declineConnectionRequestAction } from '../connections/actions';
-import { generateMatchCandidatesAction, respondToIntroAction } from '../matching/actions';
+import { generateMatchCandidatesAction, respondToIntroAction, runMatchingNowAction } from '../matching/actions';
 
 export default async function HomePage({ searchParams }) {
   const supabase = await createClient();
@@ -65,6 +65,8 @@ export default async function HomePage({ searchParams }) {
   const accepted = params?.accepted === '1';
   const declined = params?.declined === '1';
   const responded = params?.responded === '1';
+  const matched = params?.matched === '1';
+  const matchCount = Number(params?.match_count || 0);
   const error = params?.error ? decodeURIComponent(params.error) : '';
 
   return (
@@ -76,6 +78,7 @@ export default async function HomePage({ searchParams }) {
         {accepted ? <p style={{ color: '#8fd19e' }}>Connection request accepted.</p> : null}
         {declined ? <p style={{ color: '#8fd19e' }}>Connection request declined.</p> : null}
         {responded ? <p style={{ color: '#8fd19e' }}>Intro response saved.</p> : null}
+        {matched ? <p style={{ color: '#8fd19e' }}>Matching completed. Candidates found: {matchCount}</p> : null}
         {error ? <p style={{ color: '#ff9da3' }}>{error}</p> : null}
 
         <h3 style={{ marginTop: 16 }}>Incoming connection requests</h3>
@@ -105,7 +108,12 @@ export default async function HomePage({ searchParams }) {
           {(incomingRequests || []).length === 0 ? <p className="muted">No pending requests.</p> : null}
         </div>
 
-        <h3 style={{ marginTop: 16 }}>Suggested introductions</h3>
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+          <h3 style={{ margin: 0 }}>Suggested introductions</h3>
+          <form action={runMatchingNowAction}>
+            <button className="button" type="submit">Find my matches</button>
+          </form>
+        </div>
         <div className="feed" style={{ marginTop: 8 }}>
           {(suggestedIntros || []).map((match) => {
             const matched = matchedById.get(match.user_b_id);

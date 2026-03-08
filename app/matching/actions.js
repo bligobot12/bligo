@@ -23,6 +23,7 @@ function normalizeCity(v) {
 }
 
 export async function generateMatchCandidatesAction() {
+  console.log('[matching] generate start');
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: 'Supabase env not configured' };
 
@@ -31,6 +32,8 @@ export async function generateMatchCandidatesAction() {
   } = await supabase.auth.getUser();
 
   if (!user) return { ok: false, error: 'Not authenticated' };
+
+  console.log('[matching] user', user.id);
 
   const currentUserId = user.id;
 
@@ -103,7 +106,7 @@ export async function generateMatchCandidatesAction() {
       ).toFixed(4)
     );
 
-    if (score <= 0.3) continue;
+    if (score < 0.3) continue;
 
     const displayName = other.display_name || 'this person';
     const reasonParts = [];
@@ -159,7 +162,16 @@ export async function generateMatchCandidatesAction() {
     if (insertError) return { ok: false, error: insertError.message };
   }
 
+  console.log('[matching] generated', top.length);
   return { ok: true, count: top.length };
+}
+
+export async function runMatchingNowAction() {
+  const result = await generateMatchCandidatesAction();
+  if (!result?.ok) {
+    redirect('/home?error=' + enc(result?.error || 'Matching failed'));
+  }
+  redirect('/home?matched=1&match_count=' + encodeURIComponent(String(result.count || 0)));
 }
 
 export async function respondToIntroAction(formData) {
