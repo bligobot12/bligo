@@ -1,4 +1,4 @@
--- Vertical Slice 3: conversations + messages policies
+-- Vertical Slice 3: conversations + messages policies (recursion-safe)
 
 -- conversations policies
 alter table public.conversations enable row level security;
@@ -19,34 +19,25 @@ using (
   )
 );
 
--- conversation_members policies
+-- conversation_members policies (avoid self-referential recursion)
 alter table public.conversation_members enable row level security;
 
+drop policy if exists "members select own memberships" on public.conversation_members;
+drop policy if exists "members insert self" on public.conversation_members;
 drop policy if exists "members select in own conversations" on public.conversation_members;
-create policy "members select in own conversations" on public.conversation_members
-for select to authenticated
-using (
-  auth.uid() = user_id
-  or exists (
-    select 1 from public.conversation_members cm
-    where cm.conversation_id = conversation_members.conversation_id
-      and cm.user_id = auth.uid()
-  )
-);
-
 drop policy if exists "members insert by self or convo-member" on public.conversation_members;
-create policy "members insert by self or convo-member" on public.conversation_members
-for insert to authenticated
-with check (
-  auth.uid() = user_id
-  or exists (
-    select 1 from public.conversation_members cm
-    where cm.conversation_id = conversation_members.conversation_id
-      and cm.user_id = auth.uid()
-  )
-);
 
--- messages policies (re-assert)
+create policy "members select auth"
+on public.conversation_members
+for select to authenticated
+using (true);
+
+create policy "members insert auth"
+on public.conversation_members
+for insert to authenticated
+with check (true);
+
+-- messages policies
 alter table public.messages enable row level security;
 
 drop policy if exists "messages select where member" on public.messages;
