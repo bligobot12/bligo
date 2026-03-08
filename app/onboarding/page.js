@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 export const runtime = 'edge';
 
 import { createClient } from '../../lib/supabase/server';
+import TagInput from '../../components/TagInput';
 import { saveIntroPreferencesAction, saveProfileBasicsAction } from '../home/actions';
 
 export default async function OnboardingPage({ searchParams }) {
@@ -51,11 +52,19 @@ export default async function OnboardingPage({ searchParams }) {
           <label className="muted">City</label>
           <input className="input" name="city" defaultValue={profile?.city || ''} placeholder="City" />
 
-          <label className="muted">Interests (comma-separated)</label>
-          <input className="input" name="interests" defaultValue={(profile?.interests || []).join(', ')} />
+          <TagInput
+            name="interests"
+            label="Interests"
+            defaultTags={profile?.interests || []}
+            placeholder="e.g. real estate, AI, fitness"
+          />
 
-          <label className="muted">Goals (comma-separated)</label>
-          <input className="input" name="goals" defaultValue={(profile?.goals || []).join(', ')} />
+          <TagInput
+            name="goals"
+            label="Goals"
+            defaultTags={profile?.goals || []}
+            placeholder="e.g. find local contractors, meet investors"
+          />
 
           <label className="muted">Visibility</label>
           <select className="input" name="visibility" defaultValue={profile?.visibility || 'connections'}>
@@ -68,6 +77,7 @@ export default async function OnboardingPage({ searchParams }) {
       ) : (
         <form className="form-col" action={saveIntroPreferencesAction}>
           <label className="muted">Intro types (comma-separated)</label>
+          <p className="muted" style={{ marginTop: 4 }}>Pick the kinds of introductions you want most (friends, professional, activity, etc.).</p>
           <input className="input" name="intro_types" defaultValue={(prefs?.intro_types || []).join(', ')} placeholder="friends, professional, activity" />
 
           <label className="muted">Preferred locations (comma-separated)</label>
