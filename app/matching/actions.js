@@ -94,7 +94,9 @@ export async function generateMatchCandidatesAction() {
     const otherNeighbors = neighbors.get(other.user_id) || new Set();
     const mutualConnections = [...myNeighbors].filter((id) => otherNeighbors.has(id));
 
-    const interestsScore = sharedInterests.length / Math.max(1, myInterests.length, otherInterests.length);
+    const interestsScore = sharedInterests.length > 0
+      ? Math.min(1, sharedInterests.length / Math.min(myInterests.length, otherInterests.length))
+      : 0;
     const goalsScore = sharedGoals.length / Math.max(1, myGoals.length, otherGoals.length);
     const sameCityScore = sameCity ? 1 : 0;
     const mutualScore = mutualConnections.length / Math.max(1, myNeighbors.size, otherNeighbors.size);
