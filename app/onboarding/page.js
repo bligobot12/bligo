@@ -76,8 +76,7 @@ export default async function OnboardingPage({ searchParams }) {
           <label className="muted">Visibility</label>
           <select className="input" name="visibility" defaultValue={prefs?.visibility || 'private'}>
             <option value="private">Private</option>
-            <option value="network">Network</option>
-            <option value="public">Public</option>
+            <option value="trusted_only">Trusted only</option>
           </select>
 
           <div className="actions">

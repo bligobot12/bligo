@@ -32,8 +32,22 @@ create table if not exists public.intro_preferences (
   visibility text not null default 'private',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint intro_preferences_visibility_check check (visibility in ('private', 'network', 'public'))
+  constraint intro_preferences_visibility_check check (visibility in ('private', 'trusted_only'))
 );
+
+alter table public.intro_preferences
+  add column if not exists preferred_industries text[] not null default '{}',
+  add column if not exists preferred_locations text[] not null default '{}',
+  add column if not exists intro_goal text,
+  add column if not exists dealbreakers text,
+  add column if not exists visibility text not null default 'private',
+  add column if not exists created_at timestamptz not null default now(),
+  add column if not exists updated_at timestamptz not null default now();
+
+alter table public.intro_preferences
+  drop constraint if exists intro_preferences_visibility_check;
+alter table public.intro_preferences
+  add constraint intro_preferences_visibility_check check (visibility in ('private', 'trusted_only'));
 
 alter table public.intro_preferences enable row level security;
 
@@ -41,10 +55,11 @@ alter table public.intro_preferences enable row level security;
 alter table public.profiles enable row level security;
 
 drop policy if exists "profiles selectable by all auth users" on public.profiles;
-create policy "profiles selectable by all auth users"
+drop policy if exists "profiles select self" on public.profiles;
+create policy "profiles select self"
 on public.profiles
 for select to authenticated
-using (true);
+using (auth.uid() = user_id or auth.uid() = id);
 
 drop policy if exists "profiles insert self" on public.profiles;
 create policy "profiles insert self"

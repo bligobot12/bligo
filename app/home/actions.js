@@ -72,7 +72,8 @@ export async function saveIntroPreferencesAction(formData) {
   const preferredLocations = parseList(formData.get('preferred_locations'));
   const introGoal = String(formData.get('intro_goal') || '').trim();
   const dealbreakers = String(formData.get('dealbreakers') || '').trim();
-  const visibility = String(formData.get('visibility') || 'private').trim() || 'private';
+  const visibilityRaw = String(formData.get('visibility') || 'private').trim();
+  const visibility = visibilityRaw === 'trusted_only' ? 'trusted_only' : 'private';
 
   const { error } = await supabase.from('intro_preferences').upsert({
     user_id: user.id,
