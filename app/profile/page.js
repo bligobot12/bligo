@@ -41,7 +41,9 @@ export default async function ProfilePage() {
 
   return (
     <section className="card" style={{ maxWidth: 760 }}>
-      <h2>My Profile</h2>
+      <h2>Profile Preview</h2>
+      <p className="muted" style={{ marginTop: 0 }}>This is how other members see you in intros and connection surfaces.</p>
+
       <div className="form-col" style={{ marginTop: 8 }}>
         {botConnection?.status === 'connected' && botConnection?.last_active ? (
           <div className="post-item">
@@ -52,31 +54,30 @@ export default async function ProfilePage() {
             </p>
           </div>
         ) : null}
-        <div className="post-item">
-          <p className="muted">Display name</p>
-          <p>{profile.display_name || profile.username || '—'}</p>
+
+        <div className="post-item" style={{ padding: 14 }}>
+          <h3 style={{ margin: 0 }}>{profile.display_name || profile.username || '—'}</h3>
+          <p className="muted" style={{ marginTop: 4 }}>@{profile.username || 'no-username'}</p>
+          <p style={{ marginTop: 10 }}>{profile.headline || 'No headline yet.'}</p>
+          <p className="muted" style={{ marginTop: 6 }}>{profile.city || 'City not set'}</p>
+
+          <div style={{ marginTop: 12 }}>
+            <p className="muted" style={{ marginBottom: 6 }}>Interests</p>
+            <p>{renderList(profile.interests)}</p>
+          </div>
+
+          <div style={{ marginTop: 10 }}>
+            <p className="muted" style={{ marginBottom: 6 }}>Goals</p>
+            <p>{renderList(profile.goals)}</p>
+          </div>
         </div>
-        <div className="post-item">
-          <p className="muted">Headline</p>
-          <p>{profile.headline || '—'}</p>
-        </div>
-        <div className="post-item">
-          <p className="muted">City</p>
-          <p>{profile.city || '—'}</p>
-        </div>
-        <div className="post-item">
-          <p className="muted">Interests</p>
-          <p>{renderList(profile.interests)}</p>
-        </div>
-        <div className="post-item">
-          <p className="muted">Goals</p>
-          <p>{renderList(profile.goals)}</p>
-        </div>
+
         <div className="post-item">
           <p className="muted">Intro preferences</p>
           <p>{renderList(prefs?.intro_types || [])}</p>
         </div>
       </div>
+
       <div className="actions">
         <Link className="button primary" href="/onboarding?step=1">Edit onboarding</Link>
         <Link className="button" href="/home">Back home</Link>

@@ -31,8 +31,15 @@ export default async function SettingsPage({ searchParams }) {
       {error ? <p style={{ color: '#ff9da3' }}>{error}</p> : null}
 
       <div className="form-col" style={{ marginTop: 10 }}>
-        <h3 style={{ marginBottom: 4 }}>Bligo API key</h3>
-        <p className="muted" style={{ marginTop: 0 }}>Use this key to connect your AI agent securely.</p>
+        <h3 style={{ marginBottom: 4 }}>AI Agent Connection</h3>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Your API key links your assistant (OpenClaw, ChatGPT, Claude, or a custom bot) to your Bligo account so it can
+          update your profile and keep your introductions fresh.
+        </p>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Treat this key like a password: keep it private, store it in your agent settings, and regenerate it anytime if
+          you think it was exposed.
+        </p>
         <p style={{ wordBreak: 'break-all' }}>
           <strong>{connection?.api_key || 'No API key yet'}</strong>
         </p>

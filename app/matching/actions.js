@@ -253,14 +253,65 @@ export async function respondToIntroAction(formData) {
     redirect('/home?error=' + enc('Invalid intro response payload.'));
   }
 
-  const { error } = await supabase.from('intro_responses').insert({
-    match_candidate_id: matchCandidateId,
-    responding_user_id: user.id,
-    response,
-  });
+  const { data: candidate, error: candidateError } = await supabase
+    .from('match_candidates')
+    .select('id, user_a_id, user_b_id, status')
+    .eq('id', matchCandidateId)
+    .eq('user_a_id', user.id)
+    .maybeSingle();
 
-  if (error) {
-    redirect('/home?error=' + enc(error.message));
+  if (candidateError || !candidate) {
+    redirect('/home?error=' + enc(candidateError?.message || 'Match candidate not found.'));
+  }
+
+  const { error: responseError } = await supabase.from('intro_responses').upsert(
+    {
+      match_candidate_id: matchCandidateId,
+      responding_user_id: user.id,
+      response,
+    },
+    { onConflict: 'match_candidate_id,responding_user_id' }
+  );
+
+  if (responseError) {
+    redirect('/home?error=' + enc(responseError.message));
+  }
+
+  const nextStatus = response === 'accept' ? 'accepted' : 'declined';
+  const { error: statusError } = await supabase
+    .from('match_candidates')
+    .update({ status: nextStatus })
+    .eq('id', matchCandidateId)
+    .eq('user_a_id', user.id);
+
+  if (statusError) {
+    redirect('/home?error=' + enc(statusError.message));
+  }
+
+  if (response === 'accept') {
+    const now = new Date().toISOString();
+
+    const { error: c1Error } = await supabase.from('connections').upsert(
+      {
+        from_user_id: candidate.user_a_id,
+        to_user_id: candidate.user_b_id,
+        status: 'accepted',
+        updated_at: now,
+      },
+      { onConflict: 'from_user_id,to_user_id' }
+    );
+    if (c1Error) redirect('/home?error=' + enc(c1Error.message));
+
+    const { error: c2Error } = await supabase.from('connections').upsert(
+      {
+        from_user_id: candidate.user_b_id,
+        to_user_id: candidate.user_a_id,
+        status: 'accepted',
+        updated_at: now,
+      },
+      { onConflict: 'from_user_id,to_user_id' }
+    );
+    if (c2Error) redirect('/home?error=' + enc(c2Error.message));
   }
 
   redirect('/home?responded=1');
