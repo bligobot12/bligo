@@ -32,6 +32,7 @@ export default async function LoginPage({ searchParams }) {
         <form id="login-form" action={loginAction}>
           <button className="button primary" type="submit">Log in</button>
         </form>
+        <p className="muted"><Link href="/forgot-password">Forgot password?</Link></p>
         <p className="muted">No account yet? <Link href="/signup">Sign up</Link></p>
       </div>
     </section>

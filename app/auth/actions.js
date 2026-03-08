@@ -1,5 +1,6 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 
@@ -77,4 +78,26 @@ export async function logoutAction() {
   if (!supabase) redirect('/login');
   await supabase.auth.signOut();
   redirect('/login');
+}
+
+export async function forgotPasswordAction(formData) {
+  const email = String(formData.get('email') || '').trim();
+
+  const supabase = await createClient();
+  if (!supabase) {
+    redirect('/forgot-password?error=' + enc('Supabase env not configured in deployment.'));
+  }
+
+  const h = await headers();
+  const proto = h.get('x-forwarded-proto') || 'https';
+  const host = h.get('x-forwarded-host') || h.get('host') || 'bligo.ai';
+  const redirectTo = `${proto}://${host}/reset-password`;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+
+  if (error) {
+    redirect('/forgot-password?error=' + enc(error.message));
+  }
+
+  redirect('/login?message=' + enc('Password reset email sent. Check your inbox.'));
 }
