@@ -22,6 +22,66 @@ function normalizeCity(v) {
   return String(v || '').trim().toLowerCase();
 }
 
+function buildRuleBasedReason(displayName, sharedInterests, sharedGoals, sameCity, mutualConnections) {
+  const reasonParts = [];
+  if (sharedInterests.length) reasonParts.push(`you both care about ${sharedInterests.slice(0, 2).join(' and ')}`);
+  if (sharedGoals.length) reasonParts.push(`you share goals like ${sharedGoals.slice(0, 2).join(' and ')}`);
+  if (sameCity) reasonParts.push('you are in the same city');
+  if (mutualConnections.length) reasonParts.push(`you have ${mutualConnections.length} mutual connection${mutualConnections.length > 1 ? 's' : ''}`);
+  return reasonParts.length > 0
+    ? `You should meet ${displayName} now because ${reasonParts.join(', ')}. [rule-based]`
+    : `You should meet ${displayName} now based on overlapping profile signals. [rule-based]`;
+}
+
+async function generateReasonWhyNow({ displayName, me, other, sharedInterests, sharedGoals, sameCity, mutualConnections }) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const fallback = buildRuleBasedReason(displayName, sharedInterests, sharedGoals, sameCity, mutualConnections);
+
+  if (!apiKey) return `${fallback} [ai: unavailable - missing ANTHROPIC_API_KEY]`;
+
+  const prompt = [
+    'Write one concise, warm reason for why these two people should be introduced now.',
+    'Keep it specific, practical, and under 150 tokens.',
+    'Do not mention scores or internal model logic.',
+    `Person A: ${me.display_name || 'Unknown'}, city=${me.city || 'unknown'}, interests=${(me.interests || []).join(', ') || 'none'}, goals=${(me.goals || []).join(', ') || 'none'}`,
+    `Person B: ${displayName}, city=${other.city || 'unknown'}, interests=${(other.interests || []).join(', ') || 'none'}, goals=${(other.goals || []).join(', ') || 'none'}`,
+    `Shared interests: ${sharedInterests.join(', ') || 'none'}`,
+    `Shared goals: ${sharedGoals.join(', ') || 'none'}`,
+    `Same city: ${sameCity ? 'yes' : 'no'}`,
+    `Mutual connections: ${mutualConnections.length}`,
+  ].join('\n');
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 150,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    if (!resp.ok) {
+      const body = await resp.text();
+      console.warn('[matching] anthropic error', resp.status, body);
+      return `${fallback} [ai: fallback - api error]`;
+    }
+
+    const data = await resp.json();
+    const text = data?.content?.find((c) => c?.type === 'text')?.text?.trim();
+    if (!text) return `${fallback} [ai: fallback - empty response]`;
+    return `${text} [ai: claude-sonnet-4-20250514]`;
+  } catch (error) {
+    console.warn('[matching] anthropic request failed', error);
+    return `${fallback} [ai: fallback - request failed]`;
+  }
+}
+
 export async function generateMatchCandidatesAction() {
   console.log('[matching] generate start');
   const supabase = await createClient();
@@ -111,15 +171,15 @@ export async function generateMatchCandidatesAction() {
     if (score < 0.1) continue;
 
     const displayName = other.display_name || 'this person';
-    const reasonParts = [];
-    if (sharedInterests.length) reasonParts.push(`you both care about ${sharedInterests.slice(0, 2).join(' and ')}`);
-    if (sharedGoals.length) reasonParts.push(`you share goals like ${sharedGoals.slice(0, 2).join(' and ')}`);
-    if (sameCity) reasonParts.push('you are in the same city');
-    if (mutualConnections.length) reasonParts.push(`you have ${mutualConnections.length} mutual connection${mutualConnections.length > 1 ? 's' : ''}`);
-    const reasonWhyNow =
-      reasonParts.length > 0
-        ? `You should meet ${displayName} now because ${reasonParts.join(', ')}.`
-        : `You should meet ${displayName} now based on overlapping profile signals.`;
+    const reasonWhyNow = await generateReasonWhyNow({
+      displayName,
+      me,
+      other,
+      sharedInterests,
+      sharedGoals,
+      sameCity,
+      mutualConnections,
+    });
 
     const isDirect = directSet.has(`${currentUserId}:${other.user_id}`);
     const reasonTrustPath = isDirect
