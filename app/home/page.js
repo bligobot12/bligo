@@ -18,17 +18,17 @@ export default async function HomePage({ searchParams }) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('user_id, username, display_name, bio, location, goals, interests')
+    .select('user_id, username, display_name, headline, city, region, interests, goals, visibility, onboarding_complete')
     .eq('user_id', user.id)
     .maybeSingle();
 
   const { data: intro } = await supabase
     .from('intro_preferences')
-    .select('user_id, preferred_industries, preferred_locations, intro_goal, dealbreakers, visibility')
+    .select('user_id, intro_types, open_to_meeting, preferred_locations, notes')
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if (!profile || !intro) {
+  if (!profile || !intro || !profile.onboarding_complete) {
     redirect('/onboarding');
   }
 
@@ -39,22 +39,24 @@ export default async function HomePage({ searchParams }) {
     <div className="form-col" style={{ maxWidth: 860 }}>
       <section className="card">
         <h2>Home</h2>
-        <p className="muted">Protected profile summary loaded from Supabase.</p>
+        <p className="muted">Protected onboarding summary loaded from Supabase.</p>
         {onboarded ? <p style={{ color: '#8fd19e' }}>Onboarding complete. Your profile is saved.</p> : null}
 
         <div className="form-col" style={{ marginTop: 10 }}>
           <p><strong>Email:</strong> {user.email}</p>
           <p><strong>Username:</strong> {profile.username || '—'}</p>
           <p><strong>Display name:</strong> {profile.display_name || '—'}</p>
-          <p><strong>Bio:</strong> {profile.bio || '—'}</p>
-          <p><strong>Location:</strong> {profile.location || '—'}</p>
-          <p><strong>Goals:</strong> {profile.goals || '—'}</p>
-          <p><strong>Interests:</strong> {profile.interests || '—'}</p>
-          <p><strong>Preferred industries:</strong> {(intro.preferred_industries || []).join(', ') || '—'}</p>
+          <p><strong>Headline:</strong> {profile.headline || '—'}</p>
+          <p><strong>City:</strong> {profile.city || '—'}</p>
+          <p><strong>Region:</strong> {profile.region || '—'}</p>
+          <p><strong>Interests:</strong> {(profile.interests || []).join(', ') || '—'}</p>
+          <p><strong>Goals:</strong> {(profile.goals || []).join(', ') || '—'}</p>
+          <p><strong>Visibility:</strong> {profile.visibility || 'connections'}</p>
+          <p><strong>Onboarding complete:</strong> {profile.onboarding_complete ? 'true' : 'false'}</p>
+          <p><strong>Intro types:</strong> {(intro.intro_types || []).join(', ') || '—'}</p>
+          <p><strong>Open to meeting:</strong> {intro.open_to_meeting ? 'Yes' : 'No'}</p>
           <p><strong>Preferred locations:</strong> {(intro.preferred_locations || []).join(', ') || '—'}</p>
-          <p><strong>Intro goal:</strong> {intro.intro_goal || '—'}</p>
-          <p><strong>Dealbreakers:</strong> {intro.dealbreakers || '—'}</p>
-          <p><strong>Visibility:</strong> {intro.visibility || 'private'}</p>
+          <p><strong>Notes:</strong> {intro.notes || '—'}</p>
         </div>
 
         <div className="actions">

@@ -13,6 +13,13 @@ function cleanUsername(v) {
     .slice(0, 30);
 }
 
+function parseList(value) {
+  return String(value || '')
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
 export async function saveProfileBasicsAction(formData) {
   const supabase = await createClient();
   if (!supabase) redirect('/onboarding?error=' + encodeURIComponent('Supabase env not configured.'));
@@ -25,37 +32,33 @@ export async function saveProfileBasicsAction(formData) {
 
   const username = cleanUsername(formData.get('username')) || `user_${user.id.slice(0, 8)}`;
   const displayName = String(formData.get('display_name') || '').trim();
-  const bio = String(formData.get('bio') || '').trim();
-  const location = String(formData.get('location') || '').trim();
-  const goals = String(formData.get('goals') || '').trim();
-  const interests = String(formData.get('interests') || '').trim();
+  const headline = String(formData.get('headline') || '').trim();
+  const city = String(formData.get('city') || '').trim();
+  const interests = parseList(formData.get('interests'));
+  const goals = parseList(formData.get('goals'));
+  const visibilityRaw = String(formData.get('visibility') || 'connections').trim();
+  const visibility = visibilityRaw || 'connections';
 
-  const payload = {
+  const { error } = await supabase.from('profiles').upsert({
     id: user.id,
     user_id: user.id,
     username,
     display_name: displayName || null,
     full_name: displayName || null,
-    bio: bio || null,
-    location: location || null,
-    goals: goals || null,
-    interests: interests || null,
+    headline: headline || null,
+    city: city || null,
+    interests,
+    goals,
+    visibility,
+    onboarding_complete: true,
     updated_at: new Date().toISOString(),
-  };
+  });
 
-  const { error } = await supabase.from('profiles').upsert(payload);
   if (error) {
     redirect('/onboarding?error=' + encodeURIComponent(error.message));
   }
 
   redirect('/onboarding?step=2');
-}
-
-function parseList(value) {
-  return String(value || '')
-    .split(',')
-    .map((v) => v.trim())
-    .filter(Boolean);
 }
 
 export async function saveIntroPreferencesAction(formData) {
@@ -68,21 +71,22 @@ export async function saveIntroPreferencesAction(formData) {
 
   if (!user) redirect('/login');
 
-  const preferredIndustries = parseList(formData.get('preferred_industries'));
+  const introTypes = parseList(formData.get('intro_types'));
   const preferredLocations = parseList(formData.get('preferred_locations'));
-  const introGoal = String(formData.get('intro_goal') || '').trim();
-  const dealbreakers = String(formData.get('dealbreakers') || '').trim();
-  const visibilityRaw = String(formData.get('visibility') || 'private').trim();
-  const visibility = visibilityRaw === 'trusted_only' ? 'trusted_only' : 'private';
+  const notes = String(formData.get('notes') || '').trim();
+  const openToMeeting = String(formData.get('open_to_meeting') || 'true') !== 'false';
 
-  const { error } = await supabase.from('intro_preferences').upsert({
-    user_id: user.id,
-    preferred_industries: preferredIndustries,
-    preferred_locations: preferredLocations,
-    intro_goal: introGoal || null,
-    dealbreakers: dealbreakers || null,
-    visibility,
-  });
+  const { error } = await supabase.from('intro_preferences').upsert(
+    {
+      user_id: user.id,
+      intro_types: introTypes.length > 0 ? introTypes : ['general'],
+      preferred_locations: preferredLocations,
+      notes: notes || null,
+      open_to_meeting: openToMeeting,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' }
+  );
 
   if (error) {
     redirect('/onboarding?step=2&error=' + encodeURIComponent(error.message));

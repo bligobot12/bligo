@@ -21,13 +21,13 @@ export default async function OnboardingPage({ searchParams }) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('user_id, username, display_name, bio, location, goals, interests')
+    .select('user_id, username, display_name, headline, city, interests, goals, visibility, onboarding_complete')
     .eq('user_id', user.id)
     .maybeSingle();
 
   const { data: prefs } = await supabase
     .from('intro_preferences')
-    .select('user_id, preferred_industries, preferred_locations, intro_goal, dealbreakers, visibility')
+    .select('user_id, intro_types, open_to_meeting, preferred_locations, notes')
     .eq('user_id', user.id)
     .maybeSingle();
 
@@ -45,39 +45,42 @@ export default async function OnboardingPage({ searchParams }) {
           <label className="muted">Display name</label>
           <input className="input" name="display_name" defaultValue={profile?.display_name || ''} required />
 
-          <label className="muted">Bio</label>
-          <textarea className="input" name="bio" rows={3} defaultValue={profile?.bio || ''} />
+          <label className="muted">Headline</label>
+          <input className="input" name="headline" defaultValue={profile?.headline || ''} placeholder="Short intro" />
 
-          <label className="muted">Location</label>
-          <input className="input" name="location" defaultValue={profile?.location || ''} placeholder="City, State" />
+          <label className="muted">City</label>
+          <input className="input" name="city" defaultValue={profile?.city || ''} placeholder="City" />
 
-          <label className="muted">Goals</label>
-          <textarea className="input" name="goals" rows={3} defaultValue={profile?.goals || ''} placeholder="What outcomes are you looking for?" />
+          <label className="muted">Interests (comma-separated)</label>
+          <input className="input" name="interests" defaultValue={(profile?.interests || []).join(', ')} />
 
-          <label className="muted">Interests</label>
-          <textarea className="input" name="interests" rows={3} defaultValue={profile?.interests || ''} placeholder="Topics, hobbies, industries you care about" />
+          <label className="muted">Goals (comma-separated)</label>
+          <input className="input" name="goals" defaultValue={(profile?.goals || []).join(', ')} />
+
+          <label className="muted">Visibility</label>
+          <select className="input" name="visibility" defaultValue={profile?.visibility || 'connections'}>
+            <option value="connections">Connections</option>
+            <option value="private">Private</option>
+          </select>
 
           <button className="button primary" type="submit">Continue</button>
         </form>
       ) : (
         <form className="form-col" action={saveIntroPreferencesAction}>
-          <label className="muted">Preferred industries (comma-separated)</label>
-          <input className="input" name="preferred_industries" defaultValue={(prefs?.preferred_industries || []).join(', ')} />
+          <label className="muted">Intro types (comma-separated)</label>
+          <input className="input" name="intro_types" defaultValue={(prefs?.intro_types || []).join(', ')} placeholder="friends, professional, activity" />
 
           <label className="muted">Preferred locations (comma-separated)</label>
           <input className="input" name="preferred_locations" defaultValue={(prefs?.preferred_locations || []).join(', ')} />
 
-          <label className="muted">Intro goal</label>
-          <textarea className="input" name="intro_goal" rows={3} defaultValue={prefs?.intro_goal || ''} placeholder="Who would you like to be introduced to and why?" />
-
-          <label className="muted">Dealbreakers</label>
-          <textarea className="input" name="dealbreakers" rows={3} defaultValue={prefs?.dealbreakers || ''} placeholder="Any constraints to avoid" />
-
-          <label className="muted">Visibility</label>
-          <select className="input" name="visibility" defaultValue={prefs?.visibility || 'private'}>
-            <option value="private">Private</option>
-            <option value="trusted_only">Trusted only</option>
+          <label className="muted">Open to meeting?</label>
+          <select className="input" name="open_to_meeting" defaultValue={prefs?.open_to_meeting === false ? 'false' : 'true'}>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
           </select>
+
+          <label className="muted">Notes</label>
+          <textarea className="input" name="notes" rows={3} defaultValue={prefs?.notes || ''} />
 
           <div className="actions">
             <a className="button" href="/onboarding">Back</a>
