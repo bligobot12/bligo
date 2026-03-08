@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { forgotPasswordAction } from '../auth/actions';
 
-export const runtime = 'edge';
 
 export default async function ForgotPasswordPage({ searchParams }) {
   const params = await searchParams;

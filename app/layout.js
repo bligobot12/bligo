@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 
 import './globals.css';
 import Link from 'next/link';

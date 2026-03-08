@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 
 import AppNav from '../../components/AppNav';
 

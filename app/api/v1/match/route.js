@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { resolveApiClientUser } from '../../../../lib/apiAuth';
 import { runMatchingForUser } from '../../../../lib/matching/runMatchingForUser';
 
-export const runtime = 'edge';
 
 function unauthorized(message) {
   return NextResponse.json({ error: message || 'Unauthorized' }, { status: 401 });
