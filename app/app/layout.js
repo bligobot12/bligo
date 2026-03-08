@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 import AppNav from '../../components/AppNav';
 
 export default function ProductLayout({ children }) {

@@ -1,3 +1,5 @@
+export const runtime = 'edge';
+
 import { NextResponse } from 'next/server';
 import { resolveApiClientUser } from '../../../../lib/apiAuth';
 import { runMatchingForUser } from '../../../../lib/matching/runMatchingForUser';
