@@ -1,5 +1,3 @@
-export const runtime = 'edge';
-
 'use server';
 
 import { redirect } from 'next/navigation';
