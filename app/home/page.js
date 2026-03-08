@@ -73,7 +73,6 @@ export default async function HomePage({ searchParams }) {
     <div className="form-col" style={{ maxWidth: 860 }}>
       <section className="card">
         <h2>Home</h2>
-        <p className="muted">Protected onboarding summary loaded from Supabase.</p>
         {onboarded ? <p style={{ color: '#8fd19e' }}>Onboarding complete. Your profile is saved.</p> : null}
         {accepted ? <p style={{ color: '#8fd19e' }}>Connection request accepted.</p> : null}
         {declined ? <p style={{ color: '#8fd19e' }}>Connection request declined.</p> : null}
@@ -123,7 +122,7 @@ export default async function HomePage({ searchParams }) {
                   <strong>{matched?.display_name || 'Suggested person'}</strong>
                   <p className="muted">{matched?.headline || 'No headline yet'}</p>
                   <p style={{ marginTop: 6 }}>{match.reason_why_now || 'Potentially strong fit based on your profile signals.'}</p>
-                  <p className="muted" style={{ marginTop: 4 }}>Trust path: {match.reason_trust_path || 'Shared interests'} · Score: {Number(match.score || 0).toFixed(2)}</p>
+                  <p className="muted" style={{ marginTop: 4 }}>Trust path: {match.reason_trust_path || 'Shared interests'}</p>
                 </div>
                 <div className="actions" style={{ marginTop: 10 }}>
                   <form action={respondToIntroAction}>

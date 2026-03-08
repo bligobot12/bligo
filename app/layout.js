@@ -1,13 +1,19 @@
 import './globals.css';
 import Link from 'next/link';
 import { Providers } from './providers';
+import { createClient } from '../lib/supabase/server';
 
 export const metadata = {
   title: 'Bligo',
   description: 'Discover real connections, curated by AI.',
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+
   return (
     <html lang="en">
       <body>
@@ -19,9 +25,7 @@ export default function RootLayout({ children }) {
                 <Link href="/">Home</Link>
                 <Link className="desktop-only" href="/about">About</Link>
                 <Link className="desktop-only" href="/contact">Contact</Link>
-                <Link href="/login">Login</Link>
-                <Link href="/logout">Logout</Link>
-                <Link href="/messages">Messages</Link>
+                {user ? <Link href="/logout">Logout</Link> : <Link href="/login">Login</Link>}
                 <Link className="nav-cta" href="/home">App</Link>
               </nav>
             </div>
