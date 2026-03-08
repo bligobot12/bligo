@@ -44,13 +44,12 @@ export async function saveProfileBasicsAction(formData) {
     user_id: user.id,
     username,
     display_name: displayName || null,
-    full_name: displayName || null,
     headline: headline || null,
     city: city || null,
     interests,
     goals,
     visibility,
-    onboarding_complete: true,
+    onboarding_complete: false,
     updated_at: new Date().toISOString(),
   });
 
@@ -90,6 +89,15 @@ export async function saveIntroPreferencesAction(formData) {
 
   if (error) {
     redirect('/onboarding?step=2&error=' + encodeURIComponent(error.message));
+  }
+
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ onboarding_complete: true, updated_at: new Date().toISOString() })
+    .eq('user_id', user.id);
+
+  if (profileError) {
+    redirect('/onboarding?step=2&error=' + encodeURIComponent(profileError.message));
   }
 
   redirect('/home?onboarded=1');
