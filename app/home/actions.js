@@ -31,7 +31,10 @@ export async function saveProfileBasicsAction(formData) {
 
   if (!user) redirect('/login');
 
-  const username = cleanUsername(formData.get('username')) || `user_${user.id.slice(0, 8)}`;
+  // Always use authenticated user id (auth.uid) as canonical profile owner
+  const currentUserId = user.id;
+
+  const username = cleanUsername(formData.get('username')) || `user_${currentUserId.slice(0, 8)}`;
   const displayName = String(formData.get('display_name') || '').trim();
   const headline = String(formData.get('headline') || '').trim();
   const city = String(formData.get('city') || '').trim();
@@ -41,8 +44,8 @@ export async function saveProfileBasicsAction(formData) {
   const visibility = visibilityRaw || 'connections';
 
   const payload = {
-    id: user.id,
-    user_id: user.id,
+    id: currentUserId,
+    user_id: currentUserId,
     username,
     display_name: displayName || null,
     headline: headline || null,
@@ -79,6 +82,8 @@ export async function saveIntroPreferencesAction(formData) {
 
   if (!user) redirect('/login');
 
+  const currentUserId = user.id;
+
   const introTypes = parseList(formData.get('intro_types'));
   const preferredLocations = parseList(formData.get('preferred_locations'));
   const notes = String(formData.get('notes') || '').trim();
@@ -86,7 +91,7 @@ export async function saveIntroPreferencesAction(formData) {
 
   const { error } = await supabase.from('intro_preferences').upsert(
     {
-      user_id: user.id,
+      user_id: currentUserId,
       intro_types: introTypes.length > 0 ? introTypes : ['general'],
       preferred_locations: preferredLocations,
       notes: notes || null,
@@ -100,10 +105,19 @@ export async function saveIntroPreferencesAction(formData) {
     redirect('/onboarding?step=2&error=' + encodeURIComponent(error.message));
   }
 
-  const { error: profileError } = await supabase
+  let { error: profileError } = await supabase
     .from('profiles')
-    .update({ onboarding_complete: true, updated_at: new Date().toISOString() })
-    .eq('user_id', user.id);
+    .update({ onboarding_complete: true, user_id: currentUserId, updated_at: new Date().toISOString() })
+    .eq('user_id', currentUserId);
+
+  if (profileError) {
+    // fallback if older rows were keyed only by id
+    const fallback = await supabase
+      .from('profiles')
+      .update({ onboarding_complete: true, user_id: currentUserId, updated_at: new Date().toISOString() })
+      .eq('id', currentUserId);
+    profileError = fallback.error;
+  }
 
   if (profileError) {
     redirect('/onboarding?step=2&error=' + encodeURIComponent(profileError.message));
