@@ -69,12 +69,12 @@ export async function saveProfileBasicsAction(formData) {
     redirect('/onboarding?error=' + encodeURIComponent(error.message));
   }
 
-  redirect('/onboarding?step=2');
+  redirect('/onboarding');
 }
 
 export async function saveIntroPreferencesAction(formData) {
   const supabase = await createClient();
-  if (!supabase) redirect('/onboarding?step=2&error=' + encodeURIComponent('Supabase env not configured.'));
+  if (!supabase) redirect('/onboarding?error=' + encodeURIComponent('Supabase env not configured.'));
 
   const {
     data: { user },
@@ -102,7 +102,7 @@ export async function saveIntroPreferencesAction(formData) {
   );
 
   if (error) {
-    redirect('/onboarding?step=2&error=' + encodeURIComponent(error.message));
+    redirect('/onboarding?error=' + encodeURIComponent(error.message));
   }
 
   let { error: profileError } = await supabase
@@ -120,7 +120,7 @@ export async function saveIntroPreferencesAction(formData) {
   }
 
   if (profileError) {
-    redirect('/onboarding?step=2&error=' + encodeURIComponent(profileError.message));
+    redirect('/onboarding?error=' + encodeURIComponent(profileError.message));
   }
 
   // Re-run matching after onboarding/profile signal updates
