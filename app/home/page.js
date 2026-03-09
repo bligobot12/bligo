@@ -20,12 +20,19 @@ export default async function HomePage({ searchParams }) {
 
   if (!user) redirect('/login');
 
-  const adminClient = createAdminClient();
-  const { data: profile } = await (adminClient || supabase)
-    .from('profiles')
-    .select('user_id, username, display_name, headline, city, interests, signals, onboarding_complete')
-    .eq('user_id', user.id)
-    .maybeSingle();
+  // Use service role directly to bypass RLS
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://lrpytrtdbnrkcfanicbx.supabase.co';
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  let profile = null;
+  if (SERVICE_KEY) {
+    const { createClient: createSB } = await import('@supabase/supabase-js');
+    const admin = createSB(SUPABASE_URL, SERVICE_KEY, { auth: { autoRefreshToken: false, persistSession: false } });
+    const { data } = await admin.from('profiles').select('user_id, username, display_name, headline, city, interests, signals, onboarding_complete').eq('user_id', user.id).maybeSingle();
+    profile = data;
+  } else {
+    const { data } = await supabase.from('profiles').select('user_id, username, display_name, headline, city, interests, signals, onboarding_complete').eq('user_id', user.id).maybeSingle();
+    profile = data;
+  }
 
   if (!profile) redirect('/onboarding?debug=no_profile&uid=' + (user?.id || 'no_uid'));
   if (!profile.onboarding_complete) redirect('/onboarding?debug=not_complete&uid=' + user.id);
