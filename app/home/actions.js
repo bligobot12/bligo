@@ -26,8 +26,9 @@ export async function saveProfileBasicsAction(formData) {
   if (!supabase) redirect('/onboarding?error=' + encodeURIComponent('Supabase env not configured.'));
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) redirect('/login');
 
@@ -77,8 +78,9 @@ export async function saveIntroPreferencesAction(formData) {
   if (!supabase) redirect('/onboarding?error=' + encodeURIComponent('Supabase env not configured.'));
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) redirect('/login');
 
