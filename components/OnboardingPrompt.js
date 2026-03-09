@@ -103,14 +103,14 @@ export default function OnboardingPrompt({ apiKey }) {
           className={`button ${tier === 'tier2' ? 'primary' : ''}`}
           onClick={() => setTier('tier2')}
         >
-          Standard AI
+          Standard AI (ChatGPT / Claude / Gemini)
         </button>
         <button
           type="button"
           className={`button ${tier === 'tier3' ? 'primary' : ''}`}
           onClick={() => setTier('tier3')}
         >
-          Personal Agent ★
+          Personal Agent ★ (OpenClaw / Custom)
         </button>
       </div>
 
