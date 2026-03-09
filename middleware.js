@@ -14,7 +14,6 @@ export async function middleware(request) {
     cookieMap[name] = value;
   }
 
-  // Reassemble chunked Supabase auth cookies (sb-<project>-auth-token.0, .1, ...)
   const baseKey = `sb-${url.split('//')[1].split('.')[0]}-auth-token`;
   let reassembled = cookieMap[baseKey];
   if (!reassembled) {
@@ -22,7 +21,7 @@ export async function middleware(request) {
     let i = 0;
     while (cookieMap[`${baseKey}.${i}`]) {
       chunks.push(cookieMap[`${baseKey}.${i}`]);
-      i++;
+      i += 1;
     }
     if (chunks.length > 0) {
       reassembled = chunks.join('');
@@ -49,11 +48,20 @@ export async function middleware(request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (
-    !user &&
-    (request.nextUrl.pathname.startsWith('/home') ||
-      request.nextUrl.pathname.startsWith('/onboarding'))
-  ) {
+  const needsAuth = [
+    '/home',
+    '/onboarding',
+    '/messages',
+    '/connections',
+    '/settings',
+    '/profile',
+    '/search',
+    '/posts',
+    '/history',
+    '/notifications',
+  ].some((prefix) => request.nextUrl.pathname.startsWith(prefix));
+
+  if (!user && needsAuth) {
     const loginUrl = new URL('/login', request.url);
     return NextResponse.redirect(loginUrl);
   }
@@ -62,5 +70,16 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/home/:path*', '/onboarding/:path*', '/messages/:path*'],
+  matcher: [
+    '/home/:path*',
+    '/onboarding/:path*',
+    '/messages/:path*',
+    '/connections/:path*',
+    '/settings/:path*',
+    '/profile/:path*',
+    '/search/:path*',
+    '/posts/:path*',
+    '/history/:path*',
+    '/notifications/:path*',
+  ],
 };
