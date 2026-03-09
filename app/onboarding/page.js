@@ -44,6 +44,15 @@ export default async function OnboardingPage({ searchParams }) {
       {saved ? <p style={{ color: '#8fd19e' }}>Saved!</p> : null}
       {error ? <p style={{ color: '#ff9da3' }}>{error}</p> : null}
 
+      <div className="post-item" style={{ marginTop: 12, borderColor: '#4b5f9c', background: '#101a3b' }}>
+        <p style={{ margin: 0 }}>
+          💡 <strong>Tip:</strong> Bligo works best when connected to a personal AI agent that knows your full history.
+          Users with personal agents get significantly better matches because profiles are built from real behavior,
+          not just what people remember to type.
+        </p>
+        <a className="button" href="/docs" style={{ marginTop: 10, display: 'inline-block' }}>Learn about personal AI agents →</a>
+      </div>
+
       {/* STEP 1 — API Key */}
       <div className="form-col" style={{ marginTop: 16, borderBottom: '1px solid #2a2a2a', paddingBottom: 24 }}>
         <h3 style={{ marginBottom: 4 }}>Step 1 — Get your API key</h3>
