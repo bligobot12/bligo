@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { createClient } from '../../lib/supabase/server';
+import { createAdminClient } from '../../lib/supabase/admin';
 import { acceptConnectionRequestAction, declineConnectionRequestAction } from '../connections/actions';
 import { respondToIntroAction } from '../matching/actions';
 
@@ -19,7 +20,8 @@ export default async function HomePage({ searchParams }) {
 
   if (!user) redirect('/login');
 
-  const { data: profile } = await supabase
+  const adminClient = createAdminClient();
+  const { data: profile } = await (adminClient || supabase)
     .from('profiles')
     .select('user_id, username, display_name, headline, city, interests, signals, onboarding_complete')
     .eq('user_id', user.id)
