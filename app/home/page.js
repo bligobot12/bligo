@@ -35,7 +35,7 @@ export default async function HomePage({ searchParams }) {
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if (!profile || !intro || !profile.onboarding_complete) {
+  if (!profile || !profile.onboarding_complete) {
     redirect('/onboarding');
   }
 
