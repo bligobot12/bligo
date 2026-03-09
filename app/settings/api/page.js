@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import { generateApiKeyAction, saveBotSettingsAction } from '../actions';
-import OnboardingPrompt from '../OnboardingPrompt';
+import OnboardingPrompt from '../../components/OnboardingPrompt';
 
 export default async function ApiSettingsPage({ searchParams }) {
   const supabase = await createClient();
