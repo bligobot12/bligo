@@ -1,3 +1,4 @@
+import OnboardingPrompt from './OnboardingPrompt';
 import { redirect } from 'next/navigation';
 
 
@@ -49,6 +50,19 @@ export default async function SettingsPage({ searchParams }) {
         </form>
       </div>
 
+
+      <div className="form-col" style={{ marginTop: 24, borderTop: '1px solid #2a2a2a', paddingTop: 24 }}>
+        <h3 style={{ marginBottom: 4 }}>Onboard with your AI</h3>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Copy this prompt and paste it into ChatGPT, Claude, Gemini, or your personal AI agent.
+          Your bot will ask you a few questions and automatically build your Bligo profile.
+        </p>
+        {connection?.api_key ? (
+          <OnboardingPrompt apiKey={connection.api_key} />
+        ) : (
+          <p className="muted">Generate an API key above first, then your onboarding prompt will appear here.</p>
+        )}
+      </div>
       <form className="form-col" action={saveBotSettingsAction} style={{ marginTop: 18 }}>
         <h3 style={{ marginBottom: 4 }}>Connected bot</h3>
         <label className="muted">Bot name</label>
