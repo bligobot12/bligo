@@ -27,7 +27,8 @@ export default async function HomePage({ searchParams }) {
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if (!profile || !profile.onboarding_complete) redirect('/onboarding');
+  if (!profile) redirect('/onboarding?debug=no_profile&uid=' + (user?.id || 'no_uid'));
+  if (!profile.onboarding_complete) redirect('/onboarding?debug=not_complete&uid=' + user.id);
 
   const { data: botConnection } = await supabase
     .from('bot_connections')
