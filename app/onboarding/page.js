@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
-import { generateApiKeyAction, saveBotSettingsAction } from '../settings/actions';
+import { generateApiKeyOnboardingAction, saveBotOnboardingAction, completeOnboardingAction } from './actions';
 import OnboardingPrompt from '../../components/OnboardingPrompt';
 import TagInput from '../../components/TagInput';
 import { saveIntroPreferencesAction, saveProfileBasicsAction } from '../home/actions';
@@ -55,7 +55,7 @@ export default async function OnboardingPage({ searchParams }) {
         ) : (
           <p className="muted">No API key yet — generate one below.</p>
         )}
-        <form action={generateApiKeyAction} style={{ marginTop: 8 }}>
+        <form action={generateApiKeyOnboardingAction} style={{ marginTop: 8 }}>
           <button className="button" type="submit">
             {connection?.api_key ? 'Regenerate API key' : 'Generate API key'}
           </button>
@@ -78,8 +78,8 @@ export default async function OnboardingPage({ searchParams }) {
       {/* STEP 3 — Bot Settings */}
       <div className="form-col" style={{ marginTop: 24, borderBottom: '1px solid #2a2a2a', paddingBottom: 24 }}>
         <h3 style={{ marginBottom: 4 }}>Step 3 — Name your bot</h3>
-        <p className="muted" style={{ marginTop: 0 }}>Tell us which AI agent you're using.</p>
-        <form className="form-col" action={saveBotSettingsAction}>
+        <p className="muted" style={{ marginTop: 0 }}>Tell us which AI agent you are using.</p>
+        <form className="form-col" action={saveBotOnboardingAction}>
           <label className="muted">Bot name</label>
           <input className="input" name="bot_name" defaultValue={connection?.bot_name || ''} placeholder="My Assistant" />
           <label className="muted">Bot type</label>
@@ -89,14 +89,14 @@ export default async function OnboardingPage({ searchParams }) {
             <option value="claude">Claude</option>
             <option value="custom">Custom</option>
           </select>
-          <button className="button primary" type="submit" style={{ marginTop: 8 }}>Save and continue</button>
+          <button className="button primary" type="submit" style={{ marginTop: 8 }}>Save bot settings</button>
         </form>
       </div>
 
       {/* MANUAL FALLBACK */}
       <details style={{ marginTop: 24 }}>
         <summary style={{ cursor: 'pointer', color: '#888', fontSize: 14 }}>
-          I don't have an AI agent — fill in manually
+          I dont have an AI agent — fill in manually
         </summary>
         <div className="form-col" style={{ marginTop: 16 }}>
           <form className="form-col" action={saveProfileBasicsAction}>
@@ -133,9 +133,10 @@ export default async function OnboardingPage({ searchParams }) {
         </div>
       </details>
 
-      <div style={{ marginTop: 24 }}>
-        <a className="button primary" href="/home">Go to my feed →</a>
-      </div>
+      {/* GO TO FEED — marks onboarding complete */}
+      <form action={completeOnboardingAction} style={{ marginTop: 24 }}>
+        <button className="button primary" type="submit">Go to my feed →</button>
+      </form>
     </section>
   );
 }
