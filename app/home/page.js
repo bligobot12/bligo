@@ -34,8 +34,7 @@ export default async function HomePage({ searchParams }) {
     profile = data;
   }
 
-  if (!profile) redirect('/onboarding?debug=no_profile&uid=' + (user?.id || 'no_uid'));
-  if (!profile.onboarding_complete) redirect('/onboarding?debug=not_complete&uid=' + user.id);
+  // profile check removed - let logged in users through
 
   const { data: botConnection } = await supabase
     .from('bot_connections')
