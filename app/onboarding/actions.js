@@ -81,14 +81,20 @@ export async function completeOnboardingAction() {
   const user = session?.user;
   if (!user) redirect('/login');
 
-  await supabase
+  // Try update first, then upsert as fallback
+  const { error: updateErr } = await supabase
     .from('profiles')
-    .upsert({
+    .update({ onboarding_complete: true, updated_at: new Date().toISOString() })
+    .eq('user_id', user.id);
+
+  if (updateErr) {
+    await supabase.from('profiles').upsert({
       id: user.id,
       user_id: user.id,
       onboarding_complete: true,
       updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' });
+    }, { onConflict: 'id' });
+  }
 
   redirect('/home');
 }
