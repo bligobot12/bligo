@@ -12,8 +12,9 @@ export async function sendConnectionRequestAction(formData) {
   if (!supabase) redirect('/connections?error=' + enc('Supabase env not configured'));
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) redirect('/login');
 
@@ -46,8 +47,9 @@ export async function acceptConnectionRequestAction(formData) {
   if (!supabase) redirect('/home?error=' + enc('Supabase env not configured'));
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) redirect('/login');
 
@@ -71,8 +73,9 @@ export async function declineConnectionRequestAction(formData) {
   if (!supabase) redirect('/home?error=' + enc('Supabase env not configured'));
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) redirect('/login');
 

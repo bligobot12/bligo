@@ -1,15 +1,14 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+import Avatar from '../../components/Avatar';
 import { createClient } from '../../lib/supabase/server';
-import { createAdminClient } from '../../lib/supabase/admin';
-import { acceptConnectionRequestAction, declineConnectionRequestAction } from '../connections/actions';
-import { respondToIntroAction } from '../matching/actions';
-
-function overlapCount(a, b) {
-  const setB = new Set(Array.isArray(b) ? b.map((x) => String(x).toLowerCase()) : []);
-  return (Array.isArray(a) ? a : []).reduce((count, x) => (setB.has(String(x).toLowerCase()) ? count + 1 : count), 0);
-}
+import { createPostAction, searchFromPostAction } from '../posts/actions';
+import {
+  acceptConnectionRequestAction,
+  declineConnectionRequestAction,
+  sendConnectionRequestAction,
+} from '../connections/actions';
+import { respondToIntroAction, runMatchingNowAction } from '../matching/actions';
 
 export default async function HomePage({ searchParams }) {
   const supabase = await createClient();
@@ -20,30 +19,19 @@ export default async function HomePage({ searchParams }) {
 
   if (!user) redirect('/login');
 
-  // Use service role directly to bypass RLS
-  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://lrpytrtdbnrkcfanicbx.supabase.co';
-  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  let profile = null;
-  if (SERVICE_KEY) {
-    const { createClient: createSB } = await import('@supabase/supabase-js');
-    const admin = createSB(SUPABASE_URL, SERVICE_KEY, { auth: { autoRefreshToken: false, persistSession: false } });
-    const { data } = await admin.from('profiles').select('user_id, username, display_name, headline, city, interests, signals, onboarding_complete').eq('user_id', user.id).maybeSingle();
-    profile = data;
-  } else {
-    const { data } = await supabase.from('profiles').select('user_id, username, display_name, headline, city, interests, signals, onboarding_complete').eq('user_id', user.id).maybeSingle();
-    profile = data;
-  }
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('user_id, username, display_name, headline, city, avatar_url, onboarding_complete')
+    .eq('user_id', user.id)
+    .maybeSingle();
 
-  // Use empty profile if none found
   const safeProfile = profile || {
     user_id: user.id,
     username: user.email?.split('@')[0] || 'user',
     display_name: null,
     headline: null,
     city: null,
-    interests: [],
-    signals: [],
-    onboarding_complete: false,
+    avatar_url: null,
   };
 
   const { data: botConnection } = await supabase
@@ -54,203 +42,270 @@ export default async function HomePage({ searchParams }) {
 
   const { data: incomingRequests } = await supabase
     .from('connections')
-    .select('from_user_id, profiles:from_user_id(username,display_name)')
+    .select('from_user_id, profiles:from_user_id(username,display_name,headline)')
     .eq('to_user_id', user.id)
     .eq('status', 'pending')
     .order('created_at', { ascending: false })
     .limit(5);
 
+  const { data: acceptedConnections } = await supabase
+    .from('connections')
+    .select('from_user_id, to_user_id')
+    .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
+    .eq('status', 'accepted');
+
+  const directConnectionIds = new Set(
+    (acceptedConnections || []).map((c) => (c.from_user_id === user.id ? c.to_user_id : c.from_user_id))
+  );
+
+  const { count: connectionCount } = await supabase
+    .from('connections')
+    .select('*', { count: 'exact', head: true })
+    .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
+    .eq('status', 'accepted');
+
+  const { count: matchCount } = await supabase
+    .from('match_candidates')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_a_id', user.id)
+    .eq('status', 'pending');
+
   const { data: suggestedIntros } = await supabase
     .from('match_candidates')
-    .select('id, user_b_id, reason_why_now')
+    .select('id, user_b_id, reason_why_now, shared_signals')
     .eq('user_a_id', user.id)
     .eq('status', 'pending')
     .order('score', { ascending: false })
     .limit(3);
 
-  const { data: acceptedConnections } = await supabase
-    .from('connections')
-    .select('from_user_id, to_user_id, updated_at')
-    .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
-    .eq('status', 'accepted')
-    .order('updated_at', { ascending: false })
-    .limit(5);
+  const matchedIds = (suggestedIntros || []).map((row) => row.user_b_id);
+  const { data: matchedProfiles } = matchedIds.length
+    ? await supabase
+        .from('profiles')
+        .select('user_id, display_name, headline, avatar_url')
+        .in('user_id', matchedIds)
+    : { data: [] };
+  const matchedById = new Map((matchedProfiles || []).map((p) => [p.user_id, p]));
 
-  const recentAcceptedIds = [...new Set((acceptedConnections || []).map((c) => (c.from_user_id === user.id ? c.to_user_id : c.from_user_id)))];
+  const feedIds = [user.id, ...Array.from(directConnectionIds || [])];
+  const { data: recentPosts } = await supabase
+    .from('posts')
+    .select('id, content, post_type, created_at, user_id, profiles:user_id(display_name, headline, avatar_url)')
+    .in('user_id', feedIds)
+    .order('created_at', { ascending: false })
+    .limit(10);
 
-  const introIds = (suggestedIntros || []).map((i) => i.user_b_id);
-  const discoverCandidatesLimit = 12;
-  const { data: discoverPool } = await supabase
+  const excludedIds = [user.id, ...Array.from(directConnectionIds || [])];
+  const { data: discoverUsers } = await supabase
     .from('profiles')
-    .select('user_id, display_name, headline, city, interests, signals, created_at')
+    .select('user_id, display_name, headline, city, avatar_url')
     .neq('user_id', user.id)
     .eq('onboarding_complete', true)
-    .order('created_at', { ascending: false })
-    .limit(discoverCandidatesLimit);
-
-  const profileIds = [...new Set([...introIds, ...recentAcceptedIds, ...(discoverPool || []).map((p) => p.user_id)])];
-  const { data: profileRows } = profileIds.length
-    ? await supabase.from('profiles').select('user_id, display_name, username, headline, city').in('user_id', profileIds)
-    : { data: [] };
-  const byId = new Map((profileRows || []).map((p) => [p.user_id, p]));
-
-  const myInterests = safeProfile.interests || [];
-  const mySignalTags = (safeProfile.signals || []).map((s) => s?.tag).filter(Boolean);
-
-  const discoverMatches = (discoverPool || [])
-    .map((p) => {
-      const score = overlapCount(myInterests, p.interests) + overlapCount(mySignalTags, (p.signals || []).map((s) => s?.tag));
-      return { ...p, overlapScore: score };
-    })
-    .filter((p) => p.overlapScore > 0)
-    .slice(0, 3);
-
-  const { data: recentSearches } = await supabase
-    .from('searches')
-    .select('query, created_at')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(3);
+    .not('user_id', 'in', `(${excludedIds.join(',')})`)
+    .limit(5);
 
   const params = await searchParams;
   const accepted = params?.accepted === '1';
   const declined = params?.declined === '1';
   const responded = params?.responded === '1';
+  const matched = params?.matched === '1';
+  const posted = params?.posted === '1';
   const error = params?.error ? decodeURIComponent(params.error) : '';
 
   return (
-    <div className="form-col" style={{ maxWidth: 1050 }}>
-      <section className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-          <div>
-            <h2 style={{ marginBottom: 6 }}>{safeProfile.display_name || safeProfile.username || 'Your dashboard'}</h2>
-            <p className="muted">{safeProfile.headline || 'Add a headline in settings'}</p>
-            <p className="muted">{safeProfile.city || 'City not set'}</p>
-          </div>
-          <div>
-            <p className="muted" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 999, display: 'inline-block', background: botConnection?.status === 'connected' ? '#52d273' : '#80889b' }} />
-              Bot {botConnection?.status === 'connected' ? 'connected' : 'not connected'}
-            </p>
-            <div className="actions" style={{ marginTop: 8 }}>
-              <Link className="button" href="/posts">Post something</Link>
-              <Link className="button" href="/search">Search</Link>
-            </div>
-          </div>
-        </div>
+    <>
+      <div style={{ maxWidth: 1100, margin: '0 auto 12px' }}>
         {accepted ? <p style={{ color: '#8fd19e' }}>Connection request accepted.</p> : null}
         {declined ? <p style={{ color: '#8fd19e' }}>Connection request declined.</p> : null}
         {responded ? <p style={{ color: '#8fd19e' }}>Intro response saved.</p> : null}
+        {matched ? <p style={{ color: '#8fd19e' }}>New matches generated.</p> : null}
+        {posted ? <p style={{ color: '#8fd19e' }}>Posted.</p> : null}
         {error ? <p style={{ color: '#ff9da3' }}>{error}</p> : null}
-      </section>
-
-      <div className="home-grid">
-        <section className="card">
-          <h3>Suggested Introductions</h3>
-          <div className="feed" style={{ marginTop: 8 }}>
-            {(suggestedIntros || []).map((match) => {
-              const matched = byId.get(match.user_b_id);
-              return (
-                <div key={match.id} className="post-item">
-                  <strong>{matched?.display_name || matched?.username || 'Suggested person'}</strong>
-                  <p className="muted">{matched?.headline || 'No headline yet'}</p>
-                  <p>{match.reason_why_now || 'Potentially strong fit based on your profile.'}</p>
-                  <div className="actions" style={{ marginTop: 10 }}>
-                    <form action={respondToIntroAction}>
-                      <input type="hidden" name="match_candidate_id" value={match.id} />
-                      <input type="hidden" name="response" value="accept" />
-                      <button className="button" type="submit">Accept</button>
-                    </form>
-                    <form action={respondToIntroAction}>
-                      <input type="hidden" name="match_candidate_id" value={match.id} />
-                      <input type="hidden" name="response" value="decline" />
-                      <button className="button" type="submit">Decline</button>
-                    </form>
-                  </div>
-                </div>
-              );
-            })}
-            {(suggestedIntros || []).length === 0 ? <p className="muted">No intros right now.</p> : null}
-          </div>
-        </section>
-
-        <section className="card">
-          <h3>Your Network Activity</h3>
-          <p className="muted" style={{ marginTop: 6 }}>Incoming requests</p>
-          <div className="feed" style={{ marginTop: 6 }}>
-            {(incomingRequests || []).map((req) => {
-              const from = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles;
-              return (
-                <div key={req.from_user_id} className="post-item">
-                  <strong>{from?.display_name || from?.username || req.from_user_id}</strong>
-                  <div className="actions" style={{ marginTop: 8 }}>
-                    <form action={acceptConnectionRequestAction}>
-                      <input type="hidden" name="from_user_id" value={req.from_user_id} />
-                      <button className="button" type="submit">Accept</button>
-                    </form>
-                    <form action={declineConnectionRequestAction}>
-                      <input type="hidden" name="from_user_id" value={req.from_user_id} />
-                      <button className="button" type="submit">Decline</button>
-                    </form>
-                  </div>
-                </div>
-              );
-            })}
-            {(incomingRequests || []).length === 0 ? <p className="muted">No pending requests.</p> : null}
-          </div>
-
-          <p className="muted" style={{ marginTop: 14 }}>Recent accepted</p>
-          <div className="feed" style={{ marginTop: 6 }}>
-            {recentAcceptedIds.map((id) => {
-              const p = byId.get(id);
-              return (
-                <div key={id} className="post-item">
-                  <strong>{p?.display_name || p?.username || 'Connection'}</strong>
-                  <p className="muted">{p?.headline || 'No headline yet'}</p>
-                </div>
-              );
-            })}
-            {recentAcceptedIds.length === 0 ? <p className="muted">No recent accepted connections.</p> : null}
-          </div>
-        </section>
-
-        <section className="card" style={{ gridColumn: '1 / -1' }}>
-          <h3>Discover</h3>
-          <div className="grid" style={{ marginTop: 10 }}>
-            <div className="post-item">
-              <strong>New users who match your profile</strong>
-              <div className="feed" style={{ marginTop: 8 }}>
-                {discoverMatches.map((u) => (
-                  <div key={u.user_id}>
-                    <strong>{u.display_name || 'New user'}</strong>
-                    <p className="muted">{u.headline || 'No headline yet'} · {u.city || 'City not set'}</p>
-                  </div>
-                ))}
-                {discoverMatches.length === 0 ? <p className="muted">No overlap found yet.</p> : null}
-              </div>
-            </div>
-            <div className="post-item">
-              <strong>Based on your recent searches</strong>
-              <div className="feed" style={{ marginTop: 8 }}>
-                {(recentSearches || []).map((s, idx) => (
-                  <p key={idx} className="muted">“{s.query}”</p>
-                ))}
-                {(recentSearches || []).length === 0 ? <p className="muted">Search history will appear here once search is live.</p> : null}
-              </div>
-            </div>
-          </div>
-        </section>
       </div>
 
-      <section className="card">
-        <div className="quick-links-row">
-          <Link href="/connections">Find connections</Link>
-          <Link href="/search">Search</Link>
-          <Link href="/posts">Posts</Link>
-          <Link href="/history">History</Link>
-          <Link href="/settings">Settings</Link>
-        </div>
-      </section>
-    </div>
+      <div className="home-grid">
+        <aside style={{ position: 'sticky', top: 20 }}>
+          <div className="card" style={{ textAlign: 'center', paddingBottom: 16 }}>
+            <div style={{ height: 60, background: 'linear-gradient(135deg, #1a1a3a, #2a2a5a)', borderRadius: '8px 8px 0 0', margin: '-16px -16px 0' }} />
+
+            <Avatar src={safeProfile.avatar_url} name={safeProfile.display_name || safeProfile.username} size={72} style={{ marginTop: -36, border: '3px solid #111' }} />
+
+            <h3 style={{ margin: '8px 0 2px' }}>{safeProfile.display_name || safeProfile.username}</h3>
+            <p className="muted" style={{ margin: 0, fontSize: 13 }}>{safeProfile.headline || 'Add a headline'}</p>
+            <p className="muted" style={{ margin: '2px 0 0', fontSize: 12 }}>{safeProfile.city || 'City not set'}</p>
+
+            <div style={{ borderTop: '1px solid #2a2a2a', marginTop: 12, paddingTop: 12, display: 'flex', justifyContent: 'space-around' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontWeight: 700, fontSize: 18 }}>{connectionCount || 0}</div>
+                <div className="muted" style={{ fontSize: 11 }}>Connections</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontWeight: 700, fontSize: 18 }}>{matchCount || 0}</div>
+                <div className="muted" style={{ fontSize: 11 }}>Matches</div>
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid #2a2a2a', marginTop: 12, paddingTop: 12, fontSize: 12 }}>
+              {botConnection?.status === 'connected'
+                ? <span>🟢 Bot connected</span>
+                : <span style={{ color: '#888' }}>⚪ No bot connected</span>}
+            </div>
+
+            <div style={{ borderTop: '1px solid #2a2a2a', marginTop: 12, paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <a href="/onboarding" className="muted" style={{ fontSize: 13 }}>✏️ Edit profile</a>
+              <a href="/settings" className="muted" style={{ fontSize: 13 }}>⚙️ Settings</a>
+              <a href="/connections" className="muted" style={{ fontSize: 13 }}>👥 My connections</a>
+            </div>
+          </div>
+        </aside>
+
+        <main>
+          <div className="card" style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <Avatar src={safeProfile.avatar_url} name={safeProfile.display_name || safeProfile.username} size={40} />
+              <form action={createPostAction} style={{ flex: 1 }}>
+                <input
+                  className="input"
+                  name="content"
+                  placeholder="What are you looking for?"
+                  style={{ borderRadius: 20, cursor: 'pointer' }}
+                />
+                <input type="hidden" name="post_type" value="intent" />
+                <input type="hidden" name="visibility" value="connections" />
+                <button className="button primary" type="submit" style={{ marginTop: 8, width: '100%' }}>Post</button>
+              </form>
+            </div>
+          </div>
+
+          {(incomingRequests || []).length > 0 && (
+            <div className="card" style={{ marginBottom: 16 }}>
+              <h4 style={{ margin: '0 0 12px' }}>Connection requests</h4>
+              {(incomingRequests || []).map((req) => {
+                const from = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles;
+                return (
+                  <div key={req.from_user_id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                    <Avatar name={from?.display_name || from?.username} size={40} />
+                    <div style={{ flex: 1 }}>
+                      <strong>{from?.display_name || from?.username}</strong>
+                      <p className="muted" style={{ margin: 0, fontSize: 12 }}>{from?.headline || ''}</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <form action={acceptConnectionRequestAction}>
+                        <input type="hidden" name="from_user_id" value={req.from_user_id} />
+                        <button className="button primary" type="submit" style={{ padding: '4px 12px', fontSize: 12 }}>Accept</button>
+                      </form>
+                      <form action={declineConnectionRequestAction}>
+                        <input type="hidden" name="from_user_id" value={req.from_user_id} />
+                        <button className="button" type="submit" style={{ padding: '4px 12px', fontSize: 12 }}>Decline</button>
+                      </form>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {(recentPosts || []).length === 0 ? (
+              <div className="card">
+                <p className="muted" style={{ textAlign: 'center', padding: '20px 0' }}>
+                  Your feed will fill up as you and your connections post.<br />
+                  <strong>Start by posting what you're looking for.</strong>
+                </p>
+              </div>
+            ) : (recentPosts || []).map((post) => {
+              const p = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
+              return (
+                <div key={post.id} className="card">
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <Avatar src={p?.avatar_url} name={p?.display_name || 'Unknown'} size={40} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <strong>{p?.display_name || 'Unknown'}</strong>
+                        <span className="degree-badge">· 1st</span>
+                        <span className="muted" style={{ fontSize: 11, marginLeft: 'auto' }}>
+                          {new Date(post.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="muted" style={{ margin: '2px 0 8px', fontSize: 12 }}>{p?.headline}</p>
+                      <p style={{ margin: 0 }}>{post.content}</p>
+                      <div style={{ marginTop: 10, borderTop: '1px solid #2a2a2a', paddingTop: 8 }}>
+                        <form action={searchFromPostAction} style={{ display: 'inline' }}>
+                          <input type="hidden" name="query" value={post.content} />
+                          <button className="button" type="submit" style={{ fontSize: 12 }}>Search now →</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </main>
+
+        <aside>
+          <div className="card" style={{ marginBottom: 16 }}>
+            <h4 style={{ margin: '0 0 12px' }}>People you should meet</h4>
+            {(suggestedIntros || []).length === 0 ? (
+              <p className="muted" style={{ fontSize: 13 }}>No suggestions yet — your matches will appear here.</p>
+            ) : (suggestedIntros || []).map((match) => {
+              const matched = matchedById.get(match.user_b_id);
+              return (
+                <div key={match.id} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #2a2a2a' }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                    <Avatar src={matched?.avatar_url} name={matched?.display_name} size={40} />
+                    <div style={{ flex: 1 }}>
+                      <strong style={{ fontSize: 14 }}>{matched?.display_name || 'Someone new'}</strong>
+                      <span className="degree-badge"> · 2nd</span>
+                      <p className="muted" style={{ margin: '2px 0', fontSize: 12 }}>{matched?.headline}</p>
+                      <p style={{ margin: '4px 0', fontSize: 12 }}>{match.reason_why_now || 'Strong signal overlap'}</p>
+                      <div style={{ marginTop: 4 }}>
+                        {(match.shared_signals || []).slice(0, 3).map((sig, i) => (
+                          <span key={i} className="signal-chip">{String(sig)}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                    <form action={respondToIntroAction} style={{ flex: 1 }}>
+                      <input type="hidden" name="match_candidate_id" value={match.id} />
+                      <input type="hidden" name="response" value="accept" />
+                      <button className="button primary" type="submit" style={{ width: '100%', fontSize: 12 }}>Connect</button>
+                    </form>
+                    <form action={respondToIntroAction} style={{ flex: 1 }}>
+                      <input type="hidden" name="match_candidate_id" value={match.id} />
+                      <input type="hidden" name="response" value="decline" />
+                      <button className="button" type="submit" style={{ width: '100%', fontSize: 12 }}>Skip</button>
+                    </form>
+                  </div>
+                </div>
+              );
+            })}
+            <form action={runMatchingNowAction}>
+              <button className="button" type="submit" style={{ width: '100%', fontSize: 12, marginTop: 4 }}>Find more matches</button>
+            </form>
+          </div>
+
+          <div className="card">
+            <h4 style={{ margin: '0 0 12px' }}>Grow your network</h4>
+            {(discoverUsers || []).length === 0 ? (
+              <p className="muted" style={{ fontSize: 13 }}>Invite friends to unlock more connections.</p>
+            ) : (discoverUsers || []).slice(0, 3).map((u) => (
+              <div key={u.user_id} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+                <Avatar src={u.avatar_url} name={u.display_name} size={36} />
+                <div style={{ flex: 1 }}>
+                  <strong style={{ fontSize: 13 }}>{u.display_name}</strong>
+                  <p className="muted" style={{ margin: 0, fontSize: 11 }}>{u.city}</p>
+                </div>
+                <form action={sendConnectionRequestAction}>
+                  <input type="hidden" name="to_user_id" value={u.user_id} />
+                  <button className="button" type="submit" style={{ fontSize: 11, padding: '3px 10px' }}>+ Connect</button>
+                </form>
+              </div>
+            ))}
+          </div>
+        </aside>
+      </div>
+    </>
   );
 }

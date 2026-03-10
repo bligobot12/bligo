@@ -32,6 +32,12 @@ export async function createPostAction(formData) {
   redirect('/posts?posted=1');
 }
 
+export async function searchFromPostAction(formData) {
+  const query = String(formData.get('query') || '').trim();
+  if (!query) redirect('/search?error=' + enc('Cannot search from empty post'));
+  redirect('/search?q=' + encodeURIComponent(query));
+}
+
 export async function deletePostAction(formData) {
   const supabase = await createClient();
   const {

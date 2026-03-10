@@ -89,8 +89,9 @@ export async function generateMatchCandidatesAction() {
   if (!supabase) return { ok: false, error: 'Supabase env not configured' };
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return { ok: false, error: 'Not authenticated' };
 
@@ -114,8 +115,9 @@ export async function respondToIntroAction(formData) {
   if (!supabase) redirect('/home?error=' + enc('Supabase env not configured'));
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) redirect('/login');
 
