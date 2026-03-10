@@ -13,7 +13,11 @@ export default async function ChatPage({ params }) {
     session = refreshed?.session;
   }
   const user = session?.user;
-  if (!user) redirect('/login');
+  if (!user) return (
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: 40 }}>
+      <p>Please <a href="/login">log in</a> to view messages.</p>
+    </div>
+  );
 
   const { data: friend } = await supabase
     .from('profiles')

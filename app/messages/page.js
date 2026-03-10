@@ -13,7 +13,11 @@ export default async function MessagesPage({ searchParams }) {
     session = refreshed?.session;
   }
   const user = session?.user;
-  if (!user) redirect('/login');
+  if (!user) return (
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: 40 }}>
+      <p>Please <a href="/login">log in</a> to view messages.</p>
+    </div>
+  );
 
   const params = await searchParams;
   const activeTab = params?.tab === 'requests' ? 'requests' : 'inbox';
