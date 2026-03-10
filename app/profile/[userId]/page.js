@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../lib/supabase/server';
 import UserCard from '../../../components/UserCard';
-import PostCard from '../../../components/PostCard';
 import { sendConnectionRequestAction } from '../../connections/actions';
 
 export default async function PublicProfilePage({ params }) {
@@ -59,7 +58,10 @@ export default async function PublicProfilePage({ params }) {
       <section className="card">
         <h3>Public posts</h3>
         {(posts || []).map((post) => (
-          <PostCard key={post.id} post={post} author={profile.display_name} showSearch={false} showMeta />
+          <div key={post.id} className="card" style={{ marginBottom: 12 }}>
+            <p style={{ margin: 0 }}>{post.content}</p>
+            <p className="muted" style={{ fontSize: 11, marginTop: 8 }}>{new Date(post.created_at).toLocaleDateString()}</p>
+          </div>
         ))}
         {(posts || []).length === 0 ? <p className="muted">No public posts yet.</p> : null}
       </section>
