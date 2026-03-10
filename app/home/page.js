@@ -96,15 +96,13 @@ export default async function HomePage({ searchParams }) {
     .order('created_at', { ascending: false })
     .limit(10);
 
-  const { data: discoverUsers } = await supabase
+  const { data: allDiscoverUsers } = await supabase
     .from('profiles')
     .select('user_id, display_name, headline, city, avatar_url')
     .neq('user_id', user.id)
     .eq('onboarding_complete', true)
-    .limit(10)
-    .then(({ data }) => ({
-      data: (data || []).filter(u => !directConnectionIds.has(u.user_id)).slice(0, 5)
-    }));
+    .limit(10);
+  const discoverUsers = (allDiscoverUsers || []).filter(u => !directConnectionIds.has(u.user_id)).slice(0, 5);
 
   const params = await searchParams;
   const accepted = params?.accepted === '1';
