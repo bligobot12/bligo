@@ -95,7 +95,8 @@ export default async function ConnectionsPage({ searchParams }) {
         <h3 style={{ marginTop: 16 }}>Your friends</h3>
         <div className="feed" style={{ marginTop: 8 }}>
           {(friendConns || []).map((conn) => {
-            const friend = conn.from_user_id === user.id ? conn.to_profile : conn.from_profile;
+            const rawFriend = conn.from_user_id === user.id ? conn.to_profile : conn.from_profile;
+            const friend = Array.isArray(rawFriend) ? rawFriend[0] : rawFriend;
             if (!friend?.user_id) return null;
 
             return (

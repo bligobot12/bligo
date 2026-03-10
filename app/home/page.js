@@ -215,7 +215,7 @@ export default async function HomePage({ searchParams }) {
               const p = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
               return (
                 <div key={post.id} className="card">
-                  <PostCard post={post} author={`${p?.display_name || 'Unknown'} (${getDegreLabel(1)})`} showSearch showMeta={false} isOwner={post.user_id === user.id} redirectTo="/home" />
+                  <PostCard post={post} currentUserId={user.id} />
                 </div>
               );
             })}
