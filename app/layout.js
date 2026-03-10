@@ -21,72 +21,76 @@ export default async function RootLayout({ children }) {
   let unreadRequests = 0;
   let navProfile = null;
 
-  if (user && supabase) { try {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('last_seen_notifications, display_name, first_name, last_name, avatar_url')
-      .eq('user_id', user.id)
-      .maybeSingle();
-    navProfile = profile;
+  if (user && supabase) {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('last_seen_notifications, display_name, first_name, last_name, avatar_url')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      navProfile = profile;
 
-    const lastSeen = profile?.last_seen_notifications ? new Date(profile.last_seen_notifications) : null;
+      const lastSeen = profile?.last_seen_notifications ? new Date(profile.last_seen_notifications) : null;
 
-    const { data: recentMatch } = await supabase
-      .from('match_candidates')
-      .select('created_at')
-      .eq('user_a_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      const { data: recentMatch } = await supabase
+        .from('match_candidates')
+        .select('created_at')
+        .eq('user_a_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    const { data: recentAccepted } = await supabase
-      .from('connections')
-      .select('updated_at')
-      .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
-      .eq('status', 'accepted')
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      const { data: recentAccepted } = await supabase
+        .from('connections')
+        .select('updated_at')
+        .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
+        .eq('status', 'accepted')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    const latestTs = [recentMatch?.created_at, recentAccepted?.updated_at].filter(Boolean).sort().pop();
-    hasUnreadNotifications = latestTs ? (!lastSeen || new Date(latestTs) > lastSeen) : false;
+      const latestTs = [recentMatch?.created_at, recentAccepted?.updated_at].filter(Boolean).sort().pop();
+      hasUnreadNotifications = latestTs ? (!lastSeen || new Date(latestTs) > lastSeen) : false;
 
-    const { data: unreadRows } = await supabase
-      .from('messages')
-      .select('from_user_id, to_user_id, read')
-      .eq('to_user_id', user.id)
-      .eq('read', false)
-      .limit(500)
-      .catch(() => ({ data: [] })) || { data: [] };
+      const { data: unreadRows } = await supabase
+        .from('messages')
+        .select('from_user_id, to_user_id, read')
+        .eq('to_user_id', user.id)
+        .eq('read', false)
+        .limit(500)
+        .catch(() => ({ data: [] })) || { data: [] };
 
-    const uniqueSenders = [...new Set((unreadRows || []).map((r) => r.from_user_id))];
+      const uniqueSenders = [...new Set((unreadRows || []).map((r) => r.from_user_id))];
 
-    if (uniqueSenders.length > 0) {
-      const checks = await Promise.all(uniqueSenders.map(async (otherId) => {
-        const { data: conn } = await supabase
-          .from('connections')
-          .select('id')
-          .or(`and(from_user_id.eq.${user.id},to_user_id.eq.${otherId}),and(from_user_id.eq.${otherId},to_user_id.eq.${user.id})`)
-          .eq('status', 'accepted')
-          .maybeSingle();
+      if (uniqueSenders.length > 0) {
+        const checks = await Promise.all(uniqueSenders.map(async (otherId) => {
+          const { data: conn } = await supabase
+            .from('connections')
+            .select('id')
+            .or(`and(from_user_id.eq.${user.id},to_user_id.eq.${otherId}),and(from_user_id.eq.${otherId},to_user_id.eq.${user.id})`)
+            .eq('status', 'accepted')
+            .maybeSingle();
 
-        if (conn) return { kind: 'inbox', otherId };
+          if (conn) return { kind: 'inbox', otherId };
 
-        const { data: reply } = await supabase
-          .from('messages')
-          .select('id')
-          .eq('from_user_id', user.id)
-          .eq('to_user_id', otherId)
-          .limit(1)
-          .maybeSingle();
+          const { data: reply } = await supabase
+            .from('messages')
+            .select('id')
+            .eq('from_user_id', user.id)
+            .eq('to_user_id', otherId)
+            .limit(1)
+            .maybeSingle();
 
-        return { kind: reply ? 'inbox' : 'requests', otherId };
-      }));
+          return { kind: reply ? 'inbox' : 'requests', otherId };
+        }));
 
-      unreadInbox = checks.filter((c) => c.kind === 'inbox').length;
-      unreadRequests = checks.filter((c) => c.kind === 'requests').length;
+        unreadInbox = checks.filter((c) => c.kind === 'inbox').length;
+        unreadRequests = checks.filter((c) => c.kind === 'requests').length;
+      }
+    } catch (e) {
+      console.error('Layout error:', e?.message);
     }
-  } catch(e) { console.error('Layout nav error:', e?.message); } }
+  }
 
   return (
     <html lang="en">
