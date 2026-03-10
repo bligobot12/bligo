@@ -12,6 +12,7 @@ import { respondToIntroAction, runMatchingNowAction } from '../matching/actions'
 import { getDegreLabel } from '../../lib/ui/getDegreeLabel';
 
 export default async function HomePage({ searchParams }) {
+  try {
   const supabase = await createClient();
   const {
     data: { session },
@@ -308,4 +309,8 @@ export default async function HomePage({ searchParams }) {
       </div>
     </>
   );
+  } catch (err) {
+    console.error('HOME_CRASH:', err?.message, err?.stack);
+    return <div style={{padding:40,color:'red'}}><h2>Debug Error</h2><pre>{String(err?.message)}</pre><pre style={{fontSize:11}}>{String(err?.stack)}</pre></div>;
+  }
 }
