@@ -72,21 +72,15 @@ export default async function ConnectionsPage({ searchParams }) {
     .order('created_at', { ascending: false })
     .limit(25);
 
-  const { data: acceptedRows } = await supabase
+  const { data: friendConns } = await supabase
     .from('connections')
-    .select('from_user_id, to_user_id')
+    .select(`
+      id, from_user_id, to_user_id, status, created_at,
+      from_profile:profiles!connections_from_user_id_fkey(user_id, display_name, first_name, last_name, headline, avatar_url, industry, job_title, location_city, location_state),
+      to_profile:profiles!connections_to_user_id_fkey(user_id, display_name, first_name, last_name, headline, avatar_url, industry, job_title, location_city, location_state)
+    `)
     .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
-    .eq('status', 'accepted')
-    .limit(100);
-
-  const friendIds = [...new Set((acceptedRows || []).map((c) => (c.from_user_id === user.id ? c.to_user_id : c.from_user_id)))];
-
-  const { data: friendProfiles } = friendIds.length
-    ? await supabase
-        .from('profiles')
-        .select('user_id, username, display_name, headline, city')
-        .in('user_id', friendIds)
-    : { data: [] };
+    .eq('status', 'accepted');
 
   return (
     <div className="form-col" style={{ maxWidth: 860 }}>
@@ -100,10 +94,20 @@ export default async function ConnectionsPage({ searchParams }) {
 
         <h3 style={{ marginTop: 16 }}>Your friends</h3>
         <div className="feed" style={{ marginTop: 8 }}>
-          {(friendProfiles || []).map((f) => (
-            <UserCard key={f.user_id} user={f} degree={getDegreLabel(1)} subtitle={f.headline || 'No headline yet'} profileHref={`/profile/${f.user_id}`} messageHref={`/messages/${f.user_id}`} />
-          ))}
-          {(friendProfiles || []).length === 0 ? <p className="muted">No friends yet.</p> : null}
+          {(friendConns || []).map((conn) => {
+            const friend = conn.from_user_id === user.id ? conn.to_profile : conn.from_profile;
+            if (!friend?.user_id) return null;
+
+            return (
+              <div key={conn.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                <UserCard profile={friend} showMessage={true} />
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                  <a href={`/messages/${friend.user_id}`} className="button" style={{ fontSize: 12 }}>Message</a>
+                </div>
+              </div>
+            );
+          })}
+          {(friendConns || []).length === 0 ? <p className="muted">No friends yet.</p> : null}
         </div>
 
         <form className="form-col" action="/connections" method="GET" style={{ marginTop: 12 }}>
