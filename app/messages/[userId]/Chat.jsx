@@ -1,11 +1,16 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
+// dynamically imported below to avoid Cloudflare edge bundling issues
 import Avatar from '../../../components/Avatar';
 
 export default function Chat({ currentUserId, friend, initialMessages, supabaseUrl, supabaseAnonKey, requireClientAuth = false }) {
   const [messages, setMessages] = useState(initialMessages || []);
+  const [createClient, setCreateClient] = useState(null);
+
+  useEffect(() => {
+    import('@supabase/supabase-js').then(mod => setCreateClient(() => mod.createClient));
+  }, []);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [currentUser, setCurrentUser] = useState(currentUserId);
