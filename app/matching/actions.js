@@ -139,14 +139,17 @@ export async function respondToIntroAction(formData) {
     redirect('/home?error=' + enc(candidateError?.message || 'Match candidate not found.'));
   }
 
-  const { error: responseError } = await supabase.from('intro_responses').upsert(
-    {
-      match_candidate_id: matchCandidateId,
-      responding_user_id: user.id,
-      response,
-    },
-    { onConflict: 'match_candidate_id,responding_user_id' }
-  );
+  // Check if response already exists
+  const { data: existing } = await supabase
+    .from('intro_responses')
+    .select('id')
+    .eq('match_candidate_id', matchCandidateId)
+    .eq('responding_user_id', user.id)
+    .maybeSingle();
+
+  const { error: responseError } = existing
+    ? await supabase.from('intro_responses').update({ response }).eq('id', existing.id)
+    : await supabase.from('intro_responses').insert({ match_candidate_id: matchCandidateId, responding_user_id: user.id, response });
 
   if (responseError) {
     redirect('/home?error=' + enc(responseError.message));

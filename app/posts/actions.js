@@ -29,7 +29,7 @@ export async function createPostAction(formData) {
   });
 
   if (error) redirect('/posts?error=' + enc(error.message));
-  redirect('/posts?posted=1');
+  redirect('/home?posted=1');
 }
 
 export async function searchFromPostAction(formData) {
