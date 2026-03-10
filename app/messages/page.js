@@ -5,9 +5,13 @@ import { getConversationStatus } from '../../lib/messaging';
 
 export default async function MessagesPage({ searchParams }) {
   const supabase = await createClient();
-  const {
+  let {
     data: { session },
   } = await supabase.auth.getSession();
+  if (!session) {
+    const { data: refreshed } = await supabase.auth.refreshSession();
+    session = refreshed?.session;
+  }
   const user = session?.user;
   if (!user) redirect('/login');
 

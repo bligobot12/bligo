@@ -5,9 +5,13 @@ import Chat from './Chat';
 export default async function ChatPage({ params }) {
   const { userId } = await params;
   const supabase = await createClient();
-  const {
+  let {
     data: { session },
   } = await supabase.auth.getSession();
+  if (!session) {
+    const { data: refreshed } = await supabase.auth.refreshSession();
+    session = refreshed?.session;
+  }
   const user = session?.user;
   if (!user) redirect('/login');
 
