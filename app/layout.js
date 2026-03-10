@@ -21,7 +21,7 @@ export default async function RootLayout({ children }) {
   let unreadRequests = 0;
   let navProfile = null;
 
-  if (user && supabase) {
+  if (user && supabase) { try {
     const { data: profile } = await supabase
       .from('profiles')
       .select('last_seen_notifications, display_name, first_name, last_name, avatar_url')
@@ -56,7 +56,8 @@ export default async function RootLayout({ children }) {
       .select('from_user_id, to_user_id, read')
       .eq('to_user_id', user.id)
       .eq('read', false)
-      .limit(500);
+      .limit(500)
+      .catch(() => ({ data: [] })) || { data: [] };
 
     const uniqueSenders = [...new Set((unreadRows || []).map((r) => r.from_user_id))];
 
@@ -85,7 +86,7 @@ export default async function RootLayout({ children }) {
       unreadInbox = checks.filter((c) => c.kind === 'inbox').length;
       unreadRequests = checks.filter((c) => c.kind === 'requests').length;
     }
-  }
+  } catch(e) { console.error('Layout nav error:', e?.message); } }
 
   return (
     <html lang="en">
