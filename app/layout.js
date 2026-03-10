@@ -2,6 +2,7 @@ import './globals.css';
 import Link from 'next/link';
 import { Providers } from './providers';
 import { createClient } from '../lib/supabase/server';
+import Avatar from '../components/Avatar';
 
 export const metadata = {
   title: 'Bligo',
@@ -18,13 +19,15 @@ export default async function RootLayout({ children }) {
   let hasUnreadNotifications = false;
   let unreadInbox = 0;
   let unreadRequests = 0;
+  let navProfile = null;
 
   if (user && supabase) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('last_seen_notifications')
+      .select('last_seen_notifications, display_name, first_name, last_name, avatar_url')
       .eq('user_id', user.id)
       .maybeSingle();
+    navProfile = profile;
 
     const lastSeen = profile?.last_seen_notifications ? new Date(profile.last_seen_notifications) : null;
 
@@ -98,11 +101,13 @@ export default async function RootLayout({ children }) {
                     <Link href="/search">Search</Link>
                     <Link href="/posts">Posts</Link>
                     <Link href="/connections">Friends</Link>
-                    <Link href="/history">History</Link>
                     <Link href="/messages">Messages{unreadRequests > 0 ? <span className="notif-dot notif-dot-red" /> : unreadInbox > 0 ? <span className="notif-dot notif-dot-purple" /> : null}</Link>
                     <Link href="/notifications">Notifications{hasUnreadNotifications ? <span className="notif-dot" /> : null}</Link>
                     <Link href="/settings">Settings</Link>
-                    <Link href="/logout">Logout</Link>
+                    <Link href={`/profile/${user.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <Avatar src={navProfile?.avatar_url} name={navProfile?.display_name || `${navProfile?.first_name || ''} ${navProfile?.last_name || ''}`.trim() || 'You'} size={22} />
+                      <span>{navProfile?.display_name || `${navProfile?.first_name || ''} ${navProfile?.last_name || ''}`.trim() || 'My Profile'}</span>
+                    </Link>
                   </>
                 ) : (
                   <>
