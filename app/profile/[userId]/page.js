@@ -4,6 +4,7 @@ import Avatar from '../../../components/Avatar';
 import { createClient } from '../../../lib/supabase/server';
 import { sendConnectionRequestAction } from '../../connections/actions';
 import SkillEditor from './SkillEditor';
+import { addSkillAction, removeSkillAction } from '../actions';
 
 function normalizeArray(value) {
   return Array.isArray(value) ? value.filter(Boolean) : [];
@@ -143,7 +144,7 @@ export default async function PublicProfilePage({ params }) {
       <section className="card">
         <h3>Skills</h3>
         {isOwn ? (
-          <SkillEditor initialSkills={skills} userId={userId} />
+          <SkillEditor initialSkills={skills} userId={userId} addAction={addSkillAction} removeAction={removeSkillAction} />
         ) : (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {skills.map((skill) => (

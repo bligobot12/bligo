@@ -3,7 +3,10 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '../../lib/supabase/server';
 
-export async function addSkillAction(userId, skill) {
+export async function addSkillAction(formData) {
+  const userId = String(formData.get('userId') || '');
+  const skill = formData.get('skill');
+
   const supabase = await createClient();
   const {
     data: { session },
@@ -30,7 +33,10 @@ export async function addSkillAction(userId, skill) {
   revalidatePath(`/profile/${userId}`);
 }
 
-export async function removeSkillAction(userId, skill) {
+export async function removeSkillAction(formData) {
+  const userId = String(formData.get('userId') || '');
+  const skill = String(formData.get('skill') || '');
+
   const supabase = await createClient();
   const {
     data: { session },

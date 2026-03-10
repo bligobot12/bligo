@@ -1,59 +1,37 @@
 'use client';
+import { useState } from 'react';
 
-import { useState, useTransition } from 'react';
-import { addSkillAction, removeSkillAction } from '../actions';
-
-export default function SkillEditor({ initialSkills = [], userId }) {
-  const [value, setValue] = useState('');
-  const [isPending, startTransition] = useTransition();
-
-  const addSkill = (skill) => {
-    const clean = String(skill || '').trim();
-    if (!clean) return;
-    startTransition(async () => {
-      await addSkillAction(userId, clean);
-      setValue('');
-    });
-  };
-
-  const removeSkill = (skill) => {
-    startTransition(async () => {
-      await removeSkillAction(userId, skill);
-    });
-  };
+export default function SkillEditor({ initialSkills = [], userId, addAction, removeAction }) {
+  const [skills] = useState(initialSkills);
+  const [input, setValue] = useState('');
 
   return (
     <div>
-      <input
-        className="input"
-        placeholder="Add skill..."
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            addSkill(value);
-          }
-        }}
-        disabled={isPending}
-        style={{ marginBottom: 8 }}
-      />
-
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {(initialSkills || []).map((skill) => (
-          <button
-            key={skill}
-            type="button"
-            onClick={() => removeSkill(skill)}
-            className="signal-chip"
-            style={{ cursor: 'pointer' }}
-            disabled={isPending}
-            title="Click to remove"
-          >
-            {skill} ×
-          </button>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+        {skills.map((skill) => (
+          <span key={skill} className="signal-chip" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {skill}
+            <form action={removeAction} style={{ display: 'inline' }}>
+              <input type="hidden" name="userId" value={userId} />
+              <input type="hidden" name="skill" value={skill} />
+              <button type="submit" style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: '0 2px', fontSize: 12 }}>×</button>
+            </form>
+          </span>
         ))}
+        {skills.length === 0 && <p className="muted">No skills added yet.</p>}
       </div>
+      <form action={addAction} style={{ display: 'flex', gap: 8 }}>
+        <input type="hidden" name="userId" value={userId} />
+        <input
+          className="input"
+          name="skill"
+          value={input}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Add a skill..."
+          style={{ flex: 1 }}
+        />
+        <button className="button" type="submit">Add</button>
+      </form>
     </div>
   );
 }
