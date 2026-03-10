@@ -108,6 +108,7 @@ export default async function RootLayout({ children }) {
                       <Avatar src={navProfile?.avatar_url} name={navProfile?.display_name || `${navProfile?.first_name || ''} ${navProfile?.last_name || ''}`.trim() || 'You'} size={22} />
                       <span>{navProfile?.display_name || `${navProfile?.first_name || ''} ${navProfile?.last_name || ''}`.trim() || 'My Profile'}</span>
                     </Link>
+                    <Link href="/logout" style={{ color: '#888' }}>Log out</Link>
                   </>
                 ) : (
                   <>
