@@ -136,9 +136,9 @@ export default function Chat({ currentUserId, friend, initialMessages, supabaseU
     <div style={{ maxWidth: 680, margin: '0 auto', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)' }}>
       <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexShrink: 0 }}>
         <a href="/messages" style={{ color: '#888', textDecoration: 'none', fontSize: 20 }}>←</a>
-        <Avatar src={friend?.avatar_url} name={friend?.display_name || friend?.username} size={40} />
+        <Avatar src={friend?.avatar_url} name={friend?.display_name || `${friend?.first_name || ""} ${friend?.last_name || ""}`.trim()} size={40} />
         <div>
-          <strong>{friend?.display_name || friend?.username || 'Conversation'}</strong>
+          <strong>{friend?.display_name || `${friend?.first_name || ""} ${friend?.last_name || ""}`.trim() || 'Conversation'}</strong>
           <p className="muted" style={{ margin: 0, fontSize: 12 }}>{friend?.headline}</p>
         </div>
       </div>
@@ -146,7 +146,7 @@ export default function Chat({ currentUserId, friend, initialMessages, supabaseU
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, padding: '4px 0' }}>
         {messages.length === 0 && (
           <p className="muted" style={{ textAlign: 'center', marginTop: 60 }}>
-            No messages yet — say hi to {friend?.display_name || friend?.username || 'them'}!
+            No messages yet — say hi to {friend?.display_name || `${friend?.first_name || ""} ${friend?.last_name || ""}`.trim() || 'them'}!
           </p>
         )}
 
@@ -196,7 +196,7 @@ export default function Chat({ currentUserId, friend, initialMessages, supabaseU
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={`Message ${friend?.display_name || friend?.username || 'them'}…`}
+          placeholder={`Message ${friend?.display_name || `${friend?.first_name || ""} ${friend?.last_name || ""}`.trim() || 'them'}…`}
           rows={1}
           style={{
             flex: 1,

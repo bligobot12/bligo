@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import { runSearchByQueryAction, searchUsersAction } from './actions';
 import { getDegreLabel } from '../../lib/ui/getDegreeLabel';
+import UserCard from '../../components/UserCard';
 
 function TierSection({ title, rows, type, viaById }) {
   return (
@@ -10,22 +11,17 @@ function TierSection({ title, rows, type, viaById }) {
       <h3>{title}</h3>
       <div className="feed" style={{ marginTop: 8 }}>
         {rows.map((row) => (
-          <div key={row.user_id} className="post-item">
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
-              <div>
-                <strong>{row.display_name || 'Unnamed user'} <span className="degree-badge">{getDegreLabel(type === 'first' ? 1 : type === 'second' ? 2 : row.via ? 3 : null)}</span></strong>
-                <p className="muted">{row.headline || 'No headline yet'}</p>
-                <p className="muted">{row.city || 'City not set'}</p>
-              </div>
-              <div style={{ fontSize: 24, fontWeight: 700 }}>{row.match_pct}%</div>
-            </div>
-            {row.via ? <p className="muted" style={{ marginTop: 6 }}>Via {viaById[row.via] || 'a trusted connection'}</p> : null}
-            <div className="actions" style={{ marginTop: 10 }}>
-              <Link className="button" href={`/messages/${row.user_id}`}>Message →</Link>
-              {type === 'first' ? null : (
-                <Link className="button" href="/connections">Connect</Link>
-              )}
-            </div>
+          <div key={row.user_id}>
+            <UserCard
+              user={row}
+              degree={getDegreLabel(type === 'first' ? 1 : type === 'second' ? 2 : row.via ? 3 : null)}
+              subtitle={row.headline || 'No headline yet'}
+              profileHref={`/profile/${row.user_id}`}
+              messageHref={`/messages/${row.user_id}`}
+              right={type === 'first' ? null : <Link className="button" href="/connections">Connect</Link>}
+            />
+            <div style={{ fontSize: 24, fontWeight: 700, marginTop: -12, marginBottom: 8 }}>{row.match_pct}%</div>
+            {row.via ? <p className="muted" style={{ marginTop: -8 }}>Via {viaById[row.via] || 'a trusted connection'}</p> : null}
           </div>
         ))}
         {rows.length === 0 ? <p className="muted">No matches in this tier yet.</p> : null}
@@ -74,11 +70,11 @@ export default async function SearchPage({ searchParams }) {
   ];
 
   const { data: viaProfiles } = viaIds.length
-    ? await supabase.from('profiles').select('user_id, display_name, username').in('user_id', viaIds)
+    ? await supabase.from('profiles').select('user_id, display_name, first_name, last_name').in('user_id', viaIds)
     : { data: [] };
 
   const viaById = Object.fromEntries(
-    (viaProfiles || []).map((p) => [p.user_id, p.display_name || p.username || 'connection'])
+    (viaProfiles || []).map((p) => [p.user_id, p.display_name || `${p.first_name || ""} ${p.last_name || ""}`.trim() || 'connection'])
   );
 
   return (

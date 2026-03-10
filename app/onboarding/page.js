@@ -21,7 +21,7 @@ export default async function OnboardingPage({ searchParams }) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('user_id, username, display_name, headline, city, interests, goals, visibility')
+    .select('user_id, first_name, last_name, display_name, headline, city, interests, goals, visibility, industry, job_title, location_city, location_state')
     .eq('user_id', user.id)
     .maybeSingle();
 
@@ -109,14 +109,28 @@ export default async function OnboardingPage({ searchParams }) {
         </summary>
         <div className="form-col" style={{ marginTop: 16 }}>
           <form className="form-col" action={saveProfileBasicsAction}>
-            <label className="muted">Username</label>
-            <input className="input" name="username" defaultValue={profile?.username || user.email?.split('@')[0] || ''} required />
-            <label className="muted">Display name</label>
-            <input className="input" name="display_name" defaultValue={profile?.display_name || ''} required />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label className="muted">First name</label>
+                <input className="input" name="first_name" defaultValue={profile?.first_name || ''} required />
+              </div>
+              <div>
+                <label className="muted">Last name</label>
+                <input className="input" name="last_name" defaultValue={profile?.last_name || ''} required />
+              </div>
+            </div>
             <label className="muted">Headline</label>
             <input className="input" name="headline" defaultValue={profile?.headline || ''} placeholder="Short intro" />
             <label className="muted">City</label>
             <input className="input" name="city" defaultValue={profile?.city || ''} placeholder="City" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <input className="input" name="job_title" defaultValue={profile?.job_title || ''} placeholder="Job title" />
+              <input className="input" name="industry" defaultValue={profile?.industry || ''} placeholder="Industry" />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <input className="input" name="location_city" defaultValue={profile?.location_city || ''} placeholder="Location city" />
+              <input className="input" name="location_state" defaultValue={profile?.location_state || ''} placeholder="Location state" />
+            </div>
             <TagInput name="interests" label="Interests" defaultTags={profile?.interests || []} placeholder="e.g. real estate, AI, fitness" />
             <TagInput name="goals" label="Goals" defaultTags={profile?.goals || []} placeholder="e.g. find local contractors, meet investors" />
             <label className="muted">Visibility</label>

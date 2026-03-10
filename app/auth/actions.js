@@ -26,9 +26,15 @@ export async function loginAction(formData) {
 }
 
 export async function signupAction(formData) {
-  const name = String(formData.get('name') || '').trim();
+  const firstName = String(formData.get('first_name') || '').trim();
+  const lastName = String(formData.get('last_name') || '').trim();
+  const name = `${firstName} ${lastName}`.trim();
   const email = String(formData.get('email') || '').trim();
   const password = String(formData.get('password') || '');
+
+  if (!firstName || !lastName) {
+    redirect('/signup?error=' + enc('First and last name are required.'));
+  }
 
   const supabase = await createClient();
   if (!supabase) {
@@ -39,7 +45,7 @@ export async function signupAction(formData) {
     email,
     password,
     options: {
-      data: { full_name: name },
+      data: { full_name: name, first_name: firstName, last_name: lastName },
     },
   });
 
@@ -51,9 +57,10 @@ export async function signupAction(formData) {
     const base = {
       id: data.user.id,
       user_id: data.user.id,
+      first_name: firstName,
+      last_name: lastName,
       full_name: name || null,
       display_name: name || null,
-      username: email.split('@')[0],
       updated_at: new Date().toISOString(),
     };
 
@@ -61,8 +68,10 @@ export async function signupAction(formData) {
     if (upsertErr) {
       await supabase.from('profiles').upsert({
         id: data.user.id,
+        first_name: firstName,
+        last_name: lastName,
         full_name: name || null,
-        username: email.split('@')[0],
+        display_name: name || null,
         updated_at: new Date().toISOString(),
       });
     }
