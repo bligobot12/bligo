@@ -266,7 +266,8 @@ export default async function HomePage({ searchParams }) {
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                  <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                    <a className="button" href={`/messages/${match.user_b_id}`} style={{ fontSize: 12 }}>Message →</a>
                     <form action={respondToIntroAction} style={{ flex: 1 }}>
                       <input type="hidden" name="match_candidate_id" value={match.id} />
                       <input type="hidden" name="response" value="accept" />
@@ -297,6 +298,7 @@ export default async function HomePage({ searchParams }) {
                   <strong style={{ fontSize: 13 }}>{u.display_name} <span className="degree-badge">{getDegreLabel(null)}</span></strong>
                   <p className="muted" style={{ margin: 0, fontSize: 11 }}>{u.city}</p>
                 </div>
+                <a className="button" href={`/messages/${u.user_id}`} style={{ fontSize: 11, padding: '3px 10px' }}>Message →</a>
                 <form action={sendConnectionRequestAction}>
                   <input type="hidden" name="to_user_id" value={u.user_id} />
                   <button className="button" type="submit" style={{ fontSize: 11, padding: '3px 10px' }}>+ Connect</button>

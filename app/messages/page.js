@@ -1,132 +1,135 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
-
-
 import { createClient } from '../../lib/supabase/server';
-import { createConversationAction, sendMessageAction } from './actions';
+import Avatar from '../../components/Avatar';
+import { getConversationStatus } from '../../lib/messaging';
 
 export default async function MessagesPage({ searchParams }) {
   const supabase = await createClient();
-  if (!supabase) redirect('/login?error=' + encodeURIComponent('Supabase env not configured'));
-
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) redirect('/login');
 
   const params = await searchParams;
-  const selectedConversationId = Number(params?.c || 0);
-  const error = params?.error ? decodeURIComponent(params.error) : '';
+  const activeTab = params?.tab === 'requests' ? 'requests' : 'inbox';
 
-  const { data: people } = await supabase
-    .from('profiles')
-    .select('id, username, display_name, full_name, avatar_url')
-    .neq('id', user.id)
+  const { data: allMessages } = await supabase
+    .from('messages')
+    .select('id, from_user_id, to_user_id, content, read, created_at')
+    .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
     .order('created_at', { ascending: false });
 
-  const { data: myMemberships } = await supabase
-    .from('conversation_members')
-    .select('conversation_id')
-    .eq('user_id', user.id);
-
-  const conversationIds = (myMemberships || []).map((m) => m.conversation_id);
-
-  let otherMembersByConversation = {};
-  if (conversationIds.length) {
-    const { data: members } = await supabase
-      .from('conversation_members')
-      .select('conversation_id, user_id, profiles:user_id(username,display_name,full_name,avatar_url)')
-      .in('conversation_id', conversationIds)
-      .neq('user_id', user.id);
-
-    for (const m of members || []) {
-      const p = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
-      otherMembersByConversation[m.conversation_id] = {
-        user_id: m.user_id,
-        name: p?.display_name || p?.full_name || p?.username || 'Unknown',
-        avatar_url: p?.avatar_url || null,
-      };
-    }
+  const convMap = new Map();
+  for (const msg of allMessages || []) {
+    const otherId = msg.from_user_id === user.id ? msg.to_user_id : msg.from_user_id;
+    if (!convMap.has(otherId)) convMap.set(otherId, { latest: msg, unread: 0 });
+    if (!msg.read && msg.to_user_id === user.id) convMap.get(otherId).unread += 1;
   }
 
-  let messages = [];
-  if (selectedConversationId && conversationIds.includes(selectedConversationId)) {
-    const { data } = await supabase
-      .from('messages')
-      .select('id, body, sender_id, created_at, profiles:sender_id(username,display_name,full_name,avatar_url)')
-      .eq('conversation_id', selectedConversationId)
-      .order('created_at', { ascending: true });
+  const partnerIds = Array.from(convMap.keys());
+  const { data: partners } = partnerIds.length
+    ? await supabase
+        .from('profiles')
+        .select('user_id, display_name, username, headline, avatar_url')
+        .in('user_id', partnerIds)
+    : { data: [] };
 
-    messages = data || [];
+  const classified = await Promise.all(
+    (partners || []).map(async (p) => {
+      const status = await getConversationStatus(supabase, user.id, p.user_id);
+      return { ...p, convStatus: status, conv: convMap.get(p.user_id) };
+    })
+  );
+
+  const inbox = classified
+    .filter((p) => p.convStatus === 'inbox')
+    .sort((a, b) => new Date(b.conv.latest.created_at) - new Date(a.conv.latest.created_at));
+
+  const requests = classified
+    .filter((p) => p.convStatus === 'requests')
+    .sort((a, b) => new Date(b.conv.latest.created_at) - new Date(a.conv.latest.created_at));
+
+  const requestCount = requests.filter((p) => p.conv.unread > 0).length;
+  const inboxUnread = inbox.filter((p) => p.conv.unread > 0).length;
+
+  function ConvCard({ partner }) {
+    const conv = partner.conv;
+    return (
+      <a href={`/messages/${partner.user_id}`} style={{ textDecoration: 'none' }}>
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', marginBottom: 8 }}>
+          <Avatar src={partner.avatar_url} name={partner.display_name || partner.username} size={48} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <strong>{partner.display_name || partner.username}</strong>
+              {conv.unread > 0 && (
+                <span style={{ background: '#6c63ff', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 11 }}>
+                  {conv.unread}
+                </span>
+              )}
+            </div>
+            <p className="muted" style={{ margin: 0, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {conv.latest.content.length > 60 ? `${conv.latest.content.slice(0, 60)}…` : conv.latest.content}
+            </p>
+          </div>
+          <span className="muted" style={{ fontSize: 11, whiteSpace: 'nowrap', flexShrink: 0 }}>
+            {new Date(conv.latest.created_at).toLocaleDateString()}
+          </span>
+        </div>
+      </a>
+    );
   }
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: '320px 1fr', alignItems: 'start' }}>
-      <section className="card">
-        <h3>New conversation</h3>
-        <form action={createConversationAction} className="form-col" style={{ marginTop: 8 }}>
-          <select className="input" name="other_user_id" required>
-            <option value="">Select a user</option>
-            {(people || []).map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.display_name || p.full_name || p.username || p.id}
-              </option>
-            ))}
-          </select>
-          <button className="button primary" type="submit">Start conversation</button>
-        </form>
+    <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      <h2 style={{ marginBottom: 16 }}>Messages</h2>
 
-        <h3 style={{ marginTop: 18 }}>Conversations</h3>
-        <div className="feed" style={{ marginTop: 8 }}>
-          {conversationIds.map((cid) => {
-            const other = otherMembersByConversation[cid];
-            return (
-              <Link key={cid} className="post-item" href={`/messages?c=${cid}`}>
-                <strong>{other?.name || `Conversation ${cid}`}</strong>
-                <p className="muted">#{cid}</p>
-              </Link>
-            );
-          })}
-          {conversationIds.length === 0 ? <p className="muted">No conversations yet.</p> : null}
-        </div>
-      </section>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid #2a2a2a', paddingBottom: 0 }}>
+        <a
+          href="/messages"
+          style={{
+            padding: '8px 20px', textDecoration: 'none', fontWeight: 600, fontSize: 14,
+            borderBottom: activeTab === 'inbox' ? '2px solid #6c63ff' : '2px solid transparent',
+            color: activeTab === 'inbox' ? '#fff' : '#888',
+          }}
+        >
+          Inbox {inboxUnread > 0 && (
+            <span style={{ background: '#6c63ff', borderRadius: 10, padding: '1px 6px', fontSize: 11, marginLeft: 4 }}>
+              {inboxUnread}
+            </span>
+          )}
+        </a>
+        <a
+          href="/messages?tab=requests"
+          style={{
+            padding: '8px 20px', textDecoration: 'none', fontWeight: 600, fontSize: 14,
+            borderBottom: activeTab === 'requests' ? '2px solid #6c63ff' : '2px solid transparent',
+            color: activeTab === 'requests' ? '#fff' : '#888',
+          }}
+        >
+          Requests {requestCount > 0 && (
+            <span style={{ background: '#ff6b6b', borderRadius: 10, padding: '1px 6px', fontSize: 11, marginLeft: 4 }}>
+              {requestCount}
+            </span>
+          )}
+        </a>
+      </div>
 
-      <section className="card">
-        <h3>Thread</h3>
-        {error ? <p style={{ color: '#ff9da3' }}>{error}</p> : null}
-
-        {!selectedConversationId ? (
-          <p className="muted">Select or create a conversation.</p>
-        ) : !conversationIds.includes(selectedConversationId) ? (
-          <p className="muted">Conversation not accessible.</p>
-        ) : (
-          <>
-            <div className="message-list" style={{ marginTop: 8, maxHeight: 420 }}>
-              {messages.map((m) => {
-                const sender = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
-                const senderName = sender?.display_name || sender?.full_name || sender?.username || 'Unknown';
-                const mine = m.sender_id === user.id;
-                return (
-                  <div key={m.id} className="message-item" style={{ background: mine ? '#1f2e5f' : '#142045' }}>
-                    <strong>{mine ? 'You' : senderName}</strong>: {m.body}
-                    <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>{new Date(m.created_at).toLocaleString()}</div>
-                  </div>
-                );
-              })}
-              {messages.length === 0 ? <p className="muted">No messages yet.</p> : null}
-            </div>
-
-            <form action={sendMessageAction} className="form-col" style={{ marginTop: 10 }}>
-              <input type="hidden" name="conversation_id" value={selectedConversationId} />
-              <textarea className="input" rows={3} name="message_body" placeholder="Type a message..." required />
-              <div className="actions">
-                <button className="button primary" type="submit">Send</button>
-              </div>
-            </form>
-          </>
-        )}
-      </section>
+      {activeTab === 'inbox' ? (
+        inbox.length === 0 ? (
+          <div className="card">
+            <p className="muted" style={{ textAlign: 'center', padding: '30px 0' }}>
+              No messages yet. Find someone on <a href="/search">Search</a> and say hi.
+            </p>
+          </div>
+        ) : inbox.map((p) => <ConvCard key={p.user_id} partner={p} />)
+      ) : (
+        requests.length === 0 ? (
+          <div className="card">
+            <p className="muted" style={{ textAlign: 'center', padding: '30px 0' }}>No message requests.</p>
+          </div>
+        ) : requests.map((p) => <ConvCard key={p.user_id} partner={p} />)
+      )}
     </div>
   );
 }

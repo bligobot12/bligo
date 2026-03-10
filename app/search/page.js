@@ -21,9 +21,8 @@ function TierSection({ title, rows, type, viaById }) {
             </div>
             {row.via ? <p className="muted" style={{ marginTop: 6 }}>Via {viaById[row.via] || 'a trusted connection'}</p> : null}
             <div className="actions" style={{ marginTop: 10 }}>
-              {type === 'first' ? (
-                <button className="button" type="button" disabled>Message (soon)</button>
-              ) : (
+              <Link className="button" href={`/messages/${row.user_id}`}>Message →</Link>
+              {type === 'first' ? null : (
                 <Link className="button" href="/connections">Connect</Link>
               )}
             </div>

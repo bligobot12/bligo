@@ -104,6 +104,7 @@ export default async function ConnectionsPage({ searchParams }) {
               <strong>{f.display_name || f.username || f.user_id} <span className="degree-badge">{getDegreLabel(1)}</span></strong>
               <p className="muted">{f.headline || 'No headline yet'}</p>
               <p className="muted">{f.city || 'City not set'}</p>
+              <Link className="button" href={`/messages/${f.user_id}`}>Message →</Link>
             </div>
           ))}
           {(friendProfiles || []).length === 0 ? <p className="muted">No friends yet.</p> : null}
@@ -164,14 +165,17 @@ export default async function ConnectionsPage({ searchParams }) {
                   <p className="muted">{p.city || 'City not set'}</p>
                 </div>
 
-                {canSend ? (
-                  <form action={sendConnectionRequestAction}>
-                    <input type="hidden" name="to_user_id" value={p.user_id} />
-                    <button className="button" type="submit">Send request</button>
-                  </form>
-                ) : (
-                  <span className="muted" style={{ textTransform: 'capitalize' }}>{status}</span>
-                )}
+                <div className="actions" style={{ marginTop: 0 }}>
+                  <Link className="button" href={`/messages/${p.user_id}`}>Message →</Link>
+                  {canSend ? (
+                    <form action={sendConnectionRequestAction}>
+                      <input type="hidden" name="to_user_id" value={p.user_id} />
+                      <button className="button" type="submit">Send request</button>
+                    </form>
+                  ) : (
+                    <span className="muted" style={{ textTransform: 'capitalize' }}>{status}</span>
+                  )}
+                </div>
               </div>
             );
           })}

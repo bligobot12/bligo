@@ -16,6 +16,8 @@ export default async function RootLayout({ children }) {
   const user = session?.user || null;
 
   let hasUnreadNotifications = false;
+  let unreadInbox = 0;
+  let unreadRequests = 0;
 
   if (user && supabase) {
     const { data: profile } = await supabase
@@ -45,6 +47,41 @@ export default async function RootLayout({ children }) {
 
     const latestTs = [recentMatch?.created_at, recentAccepted?.updated_at].filter(Boolean).sort().pop();
     hasUnreadNotifications = latestTs ? (!lastSeen || new Date(latestTs) > lastSeen) : false;
+
+    const { data: unreadRows } = await supabase
+      .from('messages')
+      .select('from_user_id, to_user_id, read')
+      .eq('to_user_id', user.id)
+      .eq('read', false)
+      .limit(500);
+
+    const uniqueSenders = [...new Set((unreadRows || []).map((r) => r.from_user_id))];
+
+    if (uniqueSenders.length > 0) {
+      const checks = await Promise.all(uniqueSenders.map(async (otherId) => {
+        const { data: conn } = await supabase
+          .from('connections')
+          .select('id')
+          .or(`and(from_user_id.eq.${user.id},to_user_id.eq.${otherId}),and(from_user_id.eq.${otherId},to_user_id.eq.${user.id})`)
+          .eq('status', 'accepted')
+          .maybeSingle();
+
+        if (conn) return { kind: 'inbox', otherId };
+
+        const { data: reply } = await supabase
+          .from('messages')
+          .select('id')
+          .eq('from_user_id', user.id)
+          .eq('to_user_id', otherId)
+          .limit(1)
+          .maybeSingle();
+
+        return { kind: reply ? 'inbox' : 'requests', otherId };
+      }));
+
+      unreadInbox = checks.filter((c) => c.kind === 'inbox').length;
+      unreadRequests = checks.filter((c) => c.kind === 'requests').length;
+    }
   }
 
   return (
@@ -62,6 +99,7 @@ export default async function RootLayout({ children }) {
                     <Link href="/posts">Posts</Link>
                     <Link href="/connections">Friends</Link>
                     <Link href="/history">History</Link>
+                    <Link href="/messages">Messages{unreadRequests > 0 ? <span className="notif-dot notif-dot-red" /> : unreadInbox > 0 ? <span className="notif-dot notif-dot-purple" /> : null}</Link>
                     <Link href="/notifications">Notifications{hasUnreadNotifications ? <span className="notif-dot" /> : null}</Link>
                     <Link href="/settings">Settings</Link>
                     <Link href="/logout">Logout</Link>
