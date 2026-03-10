@@ -72,15 +72,24 @@ export default async function ConnectionsPage({ searchParams }) {
     .order('created_at', { ascending: false })
     .limit(25);
 
-  const { data: friendConns } = await supabase
+  // Step 1 — get accepted connections
+  const { data: acceptedConns } = await supabase
     .from('connections')
-    .select(`
-      id, from_user_id, to_user_id, status, created_at,
-      from_profile:profiles!connections_from_user_id_fkey(user_id, display_name, first_name, last_name, headline, avatar_url, industry, job_title, location_city, location_state),
-      to_profile:profiles!connections_to_user_id_fkey(user_id, display_name, first_name, last_name, headline, avatar_url, industry, job_title, location_city, location_state)
-    `)
+    .select('from_user_id, to_user_id')
     .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
     .eq('status', 'accepted');
+
+  const friendIds = (acceptedConns || []).map((c) =>
+    c.from_user_id === user.id ? c.to_user_id : c.from_user_id
+  );
+
+  // Step 2 — fetch friend profiles separately
+  const { data: friendProfiles } = friendIds.length
+    ? await supabase
+        .from('profiles')
+        .select('user_id, display_name, first_name, last_name, headline, avatar_url, industry, job_title, location_city, location_state')
+        .in('user_id', friendIds)
+    : { data: [] };
 
   return (
     <div className="form-col" style={{ maxWidth: 860 }}>
@@ -94,21 +103,15 @@ export default async function ConnectionsPage({ searchParams }) {
 
         <h3 style={{ marginTop: 16 }}>Your friends</h3>
         <div className="feed" style={{ marginTop: 8 }}>
-          {(friendConns || []).map((conn) => {
-            const rawFriend = conn.from_user_id === user.id ? conn.to_profile : conn.from_profile;
-            const friend = Array.isArray(rawFriend) ? rawFriend[0] : rawFriend;
-            if (!friend?.user_id) return null;
-
-            return (
-              <div key={conn.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                <UserCard profile={friend} showMessage={true} />
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-                  <a href={`/messages/${friend.user_id}`} className="button" style={{ fontSize: 12 }}>Message</a>
-                </div>
+          {(friendProfiles || []).map((friend) => (
+            <div key={friend.user_id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              <UserCard profile={friend} showMessage={true} />
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                <a href={`/messages/${friend.user_id}`} className="button" style={{ fontSize: 12 }}>Message</a>
               </div>
-            );
-          })}
-          {(friendConns || []).length === 0 ? <p className="muted">No friends yet.</p> : null}
+            </div>
+          ))}
+          {(friendProfiles || []).length === 0 ? <p className="muted">No friends yet.</p> : null}
         </div>
 
         <form className="form-col" action="/connections" method="GET" style={{ marginTop: 12 }}>
