@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-
 import { createClient } from '../../lib/supabase/server';
 import { sendConnectionRequestAction } from './actions';
 import { getDegreLabel } from '../../lib/ui/getDegreeLabel';
@@ -11,8 +10,9 @@ export default async function ConnectionsPage({ searchParams }) {
   if (!supabase) redirect('/login?error=' + encodeURIComponent('Supabase env not configured'));
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) redirect('/login');
 
@@ -71,16 +71,45 @@ export default async function ConnectionsPage({ searchParams }) {
     .order('created_at', { ascending: false })
     .limit(25);
 
+  const { data: acceptedRows } = await supabase
+    .from('connections')
+    .select('from_user_id, to_user_id')
+    .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
+    .eq('status', 'accepted')
+    .limit(100);
+
+  const friendIds = [...new Set((acceptedRows || []).map((c) => (c.from_user_id === user.id ? c.to_user_id : c.from_user_id)))];
+
+  const { data: friendProfiles } = friendIds.length
+    ? await supabase
+        .from('profiles')
+        .select('user_id, username, display_name, headline, city')
+        .in('user_id', friendIds)
+    : { data: [] };
+
   return (
     <div className="form-col" style={{ maxWidth: 860 }}>
       <section className="card">
-        <h2>Connections</h2>
+        <h2>Friends</h2>
         <p className="muted">Search by username or display name and send a connection request.</p>
+        <p className="muted" style={{ fontSize: 12 }}>Shareable URL: <code>bligo.ai/connections</code> (your friends list, visible to logged-in users)</p>
 
         {error ? <p style={{ color: '#ff9da3' }}>{error}</p> : null}
-        {sent ? <p style={{ color: '#8fd19e' }}>Connection request sent.</p> : null}
+        {sent ? <p style={{ color: '#8fd19e' }}>Friend request sent.</p> : null}
 
-        <form className="form-col" action="/connections" method="GET" style={{ marginTop: 8 }}>
+        <h3 style={{ marginTop: 16 }}>Your friends</h3>
+        <div className="feed" style={{ marginTop: 8 }}>
+          {(friendProfiles || []).map((f) => (
+            <div key={f.user_id} className="post-item">
+              <strong>{f.display_name || f.username || f.user_id} <span className="degree-badge">{getDegreLabel(1)}</span></strong>
+              <p className="muted">{f.headline || 'No headline yet'}</p>
+              <p className="muted">{f.city || 'City not set'}</p>
+            </div>
+          ))}
+          {(friendProfiles || []).length === 0 ? <p className="muted">No friends yet.</p> : null}
+        </div>
+
+        <form className="form-col" action="/connections" method="GET" style={{ marginTop: 12 }}>
           <input className="input" name="q" placeholder="Search users..." defaultValue={q} />
           <div className="actions">
             <button className="button primary" type="submit">Search</button>
@@ -88,7 +117,7 @@ export default async function ConnectionsPage({ searchParams }) {
           </div>
         </form>
 
-        <h3 style={{ marginTop: 16 }}>Incoming requests</h3>
+        <h3 style={{ marginTop: 16 }}>Friend requests</h3>
         <div className="feed" style={{ marginTop: 8 }}>
           {(incomingPending || []).map((req) => {
             const from = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles;

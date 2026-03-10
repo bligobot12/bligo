@@ -137,7 +137,7 @@ export default async function HomePage({ searchParams }) {
             <div style={{ borderTop: '1px solid #2a2a2a', marginTop: 12, paddingTop: 12, display: 'flex', justifyContent: 'space-around' }}>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontWeight: 700, fontSize: 18 }}>{connectionCount || 0}</div>
-                <div className="muted" style={{ fontSize: 11 }}>Connections</div>
+                <div className="muted" style={{ fontSize: 11 }}>Friends</div>
               </div>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontWeight: 700, fontSize: 18 }}>{matchCount || 0}</div>
@@ -154,7 +154,7 @@ export default async function HomePage({ searchParams }) {
             <div style={{ borderTop: '1px solid #2a2a2a', marginTop: 12, paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <a href="/onboarding" className="muted" style={{ fontSize: 13 }}>✏️ Edit profile</a>
               <a href="/settings" className="muted" style={{ fontSize: 13 }}>⚙️ Settings</a>
-              <a href="/connections" className="muted" style={{ fontSize: 13 }}>👥 My connections</a>
+              <a href="/connections" className="muted" style={{ fontSize: 13 }}>👥 My friends</a>
             </div>
           </div>
         </aside>
@@ -179,7 +179,7 @@ export default async function HomePage({ searchParams }) {
 
           {(incomingRequests || []).length > 0 && (
             <div className="card" style={{ marginBottom: 16 }}>
-              <h4 style={{ margin: '0 0 12px' }}>Connection requests</h4>
+              <h4 style={{ margin: '0 0 12px' }}>Friend requests</h4>
               {(incomingRequests || []).map((req) => {
                 const from = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles;
                 return (
@@ -209,7 +209,7 @@ export default async function HomePage({ searchParams }) {
             {(recentPosts || []).length === 0 ? (
               <div className="card">
                 <p className="muted" style={{ textAlign: 'center', padding: '20px 0' }}>
-                  Your feed will fill up as you and your connections post.<br />
+                  Your feed will fill up as you and your friends post.<br />
                   <strong>Start by posting what you're looking for.</strong>
                 </p>
               </div>

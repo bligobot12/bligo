@@ -60,7 +60,7 @@ export default async function RootLayout({ children }) {
                     <Link href="/home">Home</Link>
                     <Link href="/search">Search</Link>
                     <Link href="/posts">Posts</Link>
-                    <Link href="/connections">Connections</Link>
+                    <Link href="/connections">Friends</Link>
                     <Link href="/history">History</Link>
                     <Link href="/notifications">Notifications{hasUnreadNotifications ? <span className="notif-dot" /> : null}</Link>
                     <Link href="/settings">Settings</Link>
