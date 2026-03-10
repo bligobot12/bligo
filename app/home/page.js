@@ -34,7 +34,17 @@ export default async function HomePage({ searchParams }) {
     profile = data;
   }
 
-  // profile check removed - let logged in users through
+  // Use empty profile if none found
+  const safeProfile = profile || {
+    user_id: user.id,
+    username: user.email?.split('@')[0] || 'user',
+    display_name: null,
+    headline: null,
+    city: null,
+    interests: [],
+    signals: [],
+    onboarding_complete: false,
+  };
 
   const { data: botConnection } = await supabase
     .from('bot_connections')
@@ -84,8 +94,8 @@ export default async function HomePage({ searchParams }) {
     : { data: [] };
   const byId = new Map((profileRows || []).map((p) => [p.user_id, p]));
 
-  const myInterests = profile.interests || [];
-  const mySignalTags = (profile.signals || []).map((s) => s?.tag).filter(Boolean);
+  const myInterests = safeProfile.interests || [];
+  const mySignalTags = (safeProfile.signals || []).map((s) => s?.tag).filter(Boolean);
 
   const discoverMatches = (discoverPool || [])
     .map((p) => {
@@ -113,9 +123,9 @@ export default async function HomePage({ searchParams }) {
       <section className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           <div>
-            <h2 style={{ marginBottom: 6 }}>{profile.display_name || profile.username || 'Your dashboard'}</h2>
-            <p className="muted">{profile.headline || 'Add a headline in settings'}</p>
-            <p className="muted">{profile.city || 'City not set'}</p>
+            <h2 style={{ marginBottom: 6 }}>{safeProfile.display_name || safeProfile.username || 'Your dashboard'}</h2>
+            <p className="muted">{safeProfile.headline || 'Add a headline in settings'}</p>
+            <p className="muted">{safeProfile.city || 'City not set'}</p>
           </div>
           <div>
             <p className="muted" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
