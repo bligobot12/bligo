@@ -74,7 +74,6 @@ export const config = {
   matcher: [
     '/home/:path*',
     '/onboarding/:path*',
-    '/messages/:path*',
     '/connections/:path*',
     '/settings/:path*',
     '/profile/:path*',
