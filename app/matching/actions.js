@@ -168,28 +168,26 @@ export async function respondToIntroAction(formData) {
 
   if (response === 'accept') {
     const now = new Date().toISOString();
-
-    const { error: c1Error } = await supabase.from('connections').upsert(
-      {
-        from_user_id: candidate.user_a_id,
-        to_user_id: candidate.user_b_id,
-        status: 'accepted',
-        updated_at: now,
-      },
-      { onConflict: 'from_user_id,to_user_id' }
-    );
-    if (c1Error) redirect('/home?error=' + enc(c1Error.message));
-
-    const { error: c2Error } = await supabase.from('connections').upsert(
-      {
-        from_user_id: candidate.user_b_id,
-        to_user_id: candidate.user_a_id,
-        status: 'accepted',
-        updated_at: now,
-      },
-      { onConflict: 'from_user_id,to_user_id' }
-    );
-    if (c2Error) redirect('/home?error=' + enc(c2Error.message));
+    const pairs = [
+      { from_user_id: candidate.user_a_id, to_user_id: candidate.user_b_id },
+      { from_user_id: candidate.user_b_id, to_user_id: candidate.user_a_id },
+    ];
+    for (const pair of pairs) {
+      const { data: existing } = await supabase
+        .from('connections')
+        .select('id')
+        .eq('from_user_id', pair.from_user_id)
+        .eq('to_user_id', pair.to_user_id)
+        .maybeSingle();
+      if (existing) {
+        await supabase.from('connections')
+          .update({ status: 'accepted', updated_at: now })
+          .eq('id', existing.id);
+      } else {
+        await supabase.from('connections')
+          .insert({ ...pair, status: 'accepted', updated_at: now });
+      }
+    }
   }
 
   redirect('/home?responded=1');
