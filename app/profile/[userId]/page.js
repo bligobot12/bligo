@@ -42,7 +42,7 @@ export default async function PublicProfilePage({ params }) {
     <div className="form-col" style={{ maxWidth: 900 }}>
       <section className="card">
         <h2>Profile</h2>
-        <UserCard user={profile} subtitle={profile.headline} messageHref={`/messages/${userId}`} profileHref={null} />
+        <UserCard profile={profile} showMessage={viewer.id !== userId} />
         <p className="muted">Connection status: <strong>{conn?.status || 'none'}</strong> · Mutual friends: <strong>{mutualCount}</strong></p>
         <div className="actions">
           {viewer.id !== userId ? (
