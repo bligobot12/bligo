@@ -244,7 +244,7 @@ export default async function HomePage({ searchParams }) {
                   <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                     <Avatar src={matched?.avatar_url} name={matched?.display_name} size={40} />
                     <div style={{ flex: 1 }}>
-                      <strong style={{ fontSize: 14 }}>{matched?.display_name || 'Someone new'}</strong>
+                      <Link href={`/profile/${match.user_b_id}`}><strong style={{ fontSize: 14 }}>{matched?.display_name || 'Someone new'}</strong></Link>
                       <span className="degree-badge"> {getDegreLabel(2)}</span>
                       <p className="muted" style={{ margin: '2px 0', fontSize: 12 }}>{matched?.headline}</p>
                       <p style={{ margin: '4px 0', fontSize: 12 }}>{match.reason_why_now || 'Strong signal overlap'}</p>
@@ -284,7 +284,7 @@ export default async function HomePage({ searchParams }) {
               <div key={u.user_id} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
                 <Avatar src={u.avatar_url} name={u.display_name} size={36} />
                 <div style={{ flex: 1 }}>
-                  <strong style={{ fontSize: 13 }}>{u.display_name} <span className="degree-badge">{getDegreLabel(null)}</span></strong>
+                  <Link href={`/profile/${u.user_id}`}><strong style={{ fontSize: 13 }}>{u.display_name} <span className="degree-badge">{getDegreLabel(null)}</span></strong></Link>
                   <p className="muted" style={{ margin: 0, fontSize: 11 }}>{u.city}</p>
                 </div>
                 <a className="button" href={`/messages/${u.user_id}`} style={{ fontSize: 11, padding: '3px 10px' }}>Message →</a>

@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useState } from 'react';
 import Avatar from './Avatar';
 
@@ -21,7 +22,7 @@ export default function PostCard({ post, currentUserId, onDelete, onUpdate }) {
         <Avatar src={p?.avatar_url} name={p?.display_name || 'Unknown'} size={40} />
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <strong>{p?.display_name || 'Unknown'}</strong>
+            <Link href={`/profile/${post.user_id}`}><strong>{p?.display_name || 'Unknown'}</strong></Link>
             <span className="muted" style={{ fontSize: 11, marginLeft: 'auto' }}>
               {new Date(post.created_at).toLocaleDateString()}
             </span>
