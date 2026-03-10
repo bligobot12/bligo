@@ -9,14 +9,14 @@ export default async function PublicProfilePage({ params }) {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
   const viewer = session?.user;
-  if (!viewer) redirect('/login');
+  if (!viewer) return <div style={{padding:40}}><p>Please <a href="/login">log in</a> to view profiles.</p></div>;
 
   const { data: profile } = await supabase.from('profiles')
     .select('user_id, display_name, first_name, last_name, headline, avatar_url, city, location_city, location_state, industry, job_title')
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (!profile) redirect('/search?error=' + encodeURIComponent('Profile not found'));
+  if (!profile) return <div style={{padding:40}}><p className="muted">Profile not found.</p></div>;
 
   const { data: conn } = await supabase.from('connections')
     .select('status')
