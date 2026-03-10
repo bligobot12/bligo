@@ -12,7 +12,6 @@ import { respondToIntroAction, runMatchingNowAction } from '../matching/actions'
 import { getDegreLabel } from '../../lib/ui/getDegreeLabel';
 
 export default async function HomePage({ searchParams }) {
-  try {
   const supabase = await createClient();
   const {
     data: { session },
@@ -261,7 +260,7 @@ export default async function HomePage({ searchParams }) {
                       <p className="muted" style={{ margin: '2px 0', fontSize: 12 }}>{matched?.headline}</p>
                       <p style={{ margin: '4px 0', fontSize: 12 }}>{match.reason_why_now || 'Strong signal overlap'}</p>
                       <div style={{ marginTop: 4 }}>
-                        {(match.shared_signals || []).slice(0, 3).map((sig, i) => (
+                        {(Array.isArray(match.shared_signals) ? match.shared_signals : Object.keys(match.shared_signals || {})).slice(0, 3).map((sig, i) => (
                           <span key={i} className="signal-chip">{String(sig)}</span>
                         ))}
                       </div>
@@ -309,8 +308,4 @@ export default async function HomePage({ searchParams }) {
       </div>
     </>
   );
-  } catch (err) {
-    console.error('HOME_CRASH:', err?.message, err?.stack);
-    return <div style={{padding:40,color:'red'}}><h2>Debug Error</h2><pre>{String(err?.message)}</pre><pre style={{fontSize:11}}>{String(err?.stack)}</pre></div>;
-  }
 }
