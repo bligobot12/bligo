@@ -14,8 +14,9 @@ export default async function ProfilePage() {
   if (!supabase) redirect('/login?error=' + encodeURIComponent('Supabase env not configured'));
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) redirect('/login');
 
