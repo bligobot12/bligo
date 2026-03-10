@@ -60,7 +60,7 @@ export async function GET(request) {
   {
     const resp = await supabase
       .from('profiles')
-      .select('user_id, username, display_name, interests, goals, headline, city, updated_at, signals, onboarding_tier, clusters')
+      .select('user_id, username, display_name, interests, goals, headline, city, updated_at, signals, onboarding_tier, clusters, job_title, specialty, bio, skills, industry')
       .eq('user_id', userId)
       .maybeSingle();
     profile = resp.data;
@@ -71,7 +71,7 @@ export async function GET(request) {
   if (error && /signals|onboarding_tier|clusters/i.test(error.message || '')) {
     const fallback = await supabase
       .from('profiles')
-      .select('user_id, username, display_name, interests, goals, headline, city, updated_at')
+      .select('user_id, username, display_name, interests, goals, headline, city, updated_at, job_title, specialty, bio, skills, industry')
       .eq('user_id', userId)
       .maybeSingle();
     profile = fallback.data;
@@ -117,6 +117,11 @@ export async function POST(request) {
     goals,
     headline: typeof body.headline === 'string' ? body.headline.trim() : undefined,
     city: typeof body.city === 'string' ? body.city.trim() : undefined,
+    job_title: typeof body.job === 'string' ? body.job.trim() : (typeof body.job_title === 'string' ? body.job_title.trim() : undefined),
+    industry: typeof body.industry === 'string' ? body.industry.trim() : undefined,
+    specialty: Array.isArray(body.specialty) ? cleanArray(body.specialty) : undefined,
+    bio: typeof body.bio === 'string' ? body.bio.trim() : undefined,
+    skills: Array.isArray(body.skills) ? cleanArray(body.skills) : undefined,
     onboarding_tier: Number.isFinite(Number(body.onboarding_tier)) ? Number(body.onboarding_tier) : undefined,
     clusters: signals.length > 0 ? clustersFromSignals(signals) : undefined,
     updated_at: new Date().toISOString(),
@@ -138,7 +143,7 @@ export async function POST(request) {
       .from('profiles')
       .update(payload)
       .eq('user_id', userId)
-      .select('user_id, interests, goals, headline, city, updated_at, signals, onboarding_tier, clusters')
+      .select('user_id, interests, goals, headline, city, updated_at, signals, onboarding_tier, clusters, job_title, specialty, bio, skills, industry')
       .maybeSingle();
     updated = resp.data;
     error = resp.error;
@@ -150,12 +155,17 @@ export async function POST(request) {
     delete fallbackPayload.signals;
     delete fallbackPayload.onboarding_tier;
     delete fallbackPayload.clusters;
+    delete fallbackPayload.job_title;
+    delete fallbackPayload.industry;
+    delete fallbackPayload.specialty;
+    delete fallbackPayload.bio;
+    delete fallbackPayload.skills;
 
     const fallback = await supabase
       .from('profiles')
       .update(fallbackPayload)
       .eq('user_id', userId)
-      .select('user_id, interests, goals, headline, city, updated_at')
+      .select('user_id, interests, goals, headline, city, updated_at, job_title, specialty, bio, skills, industry')
       .maybeSingle();
     updated = fallback.data;
     error = fallback.error;
