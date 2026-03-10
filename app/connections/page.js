@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import { sendConnectionRequestAction } from './actions';
 import { getDegreLabel } from '../../lib/ui/getDegreeLabel';
+import UserCard from '../../components/UserCard';
 
 export default async function ConnectionsPage({ searchParams }) {
   const supabase = await createClient();
@@ -100,12 +101,7 @@ export default async function ConnectionsPage({ searchParams }) {
         <h3 style={{ marginTop: 16 }}>Your friends</h3>
         <div className="feed" style={{ marginTop: 8 }}>
           {(friendProfiles || []).map((f) => (
-            <div key={f.user_id} className="post-item">
-              <strong>{f.display_name || f.username || f.user_id} <span className="degree-badge">{getDegreLabel(1)}</span></strong>
-              <p className="muted">{f.headline || 'No headline yet'}</p>
-              <p className="muted">{f.city || 'City not set'}</p>
-              <Link className="button" href={`/messages/${f.user_id}`}>Message →</Link>
-            </div>
+            <UserCard key={f.user_id} user={f} degree={getDegreLabel(1)} subtitle={f.headline || 'No headline yet'} profileHref={`/profile/${f.user_id}`} messageHref={`/messages/${f.user_id}`} />
           ))}
           {(friendProfiles || []).length === 0 ? <p className="muted">No friends yet.</p> : null}
         </div>
@@ -160,7 +156,7 @@ export default async function ConnectionsPage({ searchParams }) {
             return (
               <div key={p.user_id} className="post-item" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
                 <div>
-                  <strong>{p.display_name || p.username || p.user_id} <span className="degree-badge">{getDegreLabel(status === 'accepted' ? 1 : null)}</span></strong>
+                  <strong>{p.display_name || `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.user_id} <span className="degree-badge">{getDegreLabel(status === 'accepted' ? 1 : null)}</span></strong>
                   <p className="muted">{p.headline || 'No headline yet'}</p>
                   <p className="muted">{p.city || 'City not set'}</p>
                 </div>
