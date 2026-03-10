@@ -39,7 +39,7 @@ export default async function MessagesPage({ searchParams }) {
   const { data: partners } = partnerIds.length
     ? await supabase
         .from('profiles')
-        .select('user_id, display_name, first_name, last_name, headline, avatar_url, job_title, industry, location_city, location_state')
+        .select('user_id, display_name, username, headline, avatar_url')
         .in('user_id', partnerIds)
     : { data: [] };
 
@@ -66,10 +66,10 @@ export default async function MessagesPage({ searchParams }) {
     return (
       <a href={`/messages/${partner.user_id}`} style={{ textDecoration: 'none' }}>
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', marginBottom: 8 }}>
-          <Avatar src={partner.avatar_url} name={partner.display_name || `${partner.first_name || ""} ${partner.last_name || ""}`.trim()} size={48} />
+          <Avatar src={partner.avatar_url} name={partner.display_name || partner.username} size={48} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <strong>{partner.display_name || `${partner.first_name || ""} ${partner.last_name || ""}`.trim()}</strong>
+              <strong>{partner.display_name || partner.username}</strong>
               {conv.unread > 0 && (
                 <span style={{ background: '#6c63ff', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 11 }}>
                   {conv.unread}

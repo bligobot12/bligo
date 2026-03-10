@@ -23,10 +23,7 @@ export default async function SignupPage({ searchParams }) {
     <section className="card" style={{ maxWidth: 520 }}>
       <h2>Create account</h2>
       <form className="form-col" action={signupAction}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <input className="input" name="first_name" placeholder="First name" required />
-          <input className="input" name="last_name" placeholder="Last name" required />
-        </div>
+        <input className="input" name="name" placeholder="Name" required />
         <input className="input" name="email" placeholder="Email" required />
         <input className="input" type="password" name="password" placeholder="Password" minLength={8} required />
         {error ? <p style={{ color: '#ff9da3' }}>{error}</p> : null}

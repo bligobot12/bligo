@@ -4,6 +4,16 @@ import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import { generateMatchCandidatesAction } from '../matching/actions';
 
+function cleanUsername(v) {
+  return String(v || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 30);
+}
+
 function parseList(value) {
   return String(value || '')
     .split(',')
@@ -25,19 +35,10 @@ export async function saveProfileBasicsAction(formData) {
   // Always use authenticated user id (auth.uid) as canonical profile owner
   const currentUserId = user.id;
 
-  const firstName = String(formData.get('first_name') || '').trim();
-  const lastName = String(formData.get('last_name') || '').trim();
-  const displayName = `${firstName} ${lastName}`.trim();
+  const username = cleanUsername(formData.get('username')) || `user_${currentUserId.slice(0, 8)}`;
+  const displayName = String(formData.get('display_name') || '').trim();
   const headline = String(formData.get('headline') || '').trim();
   const city = String(formData.get('city') || '').trim();
-  const industry = String(formData.get('industry') || '').trim();
-  const jobTitle = String(formData.get('job_title') || '').trim();
-  const locationCity = String(formData.get('location_city') || city).trim();
-  const locationState = String(formData.get('location_state') || '').trim();
-  if (!firstName || !lastName) {
-    redirect('/onboarding?error=' + encodeURIComponent('First and last name are required.'));
-  }
-
   const interests = parseList(formData.get('interests'));
   const goals = parseList(formData.get('goals'));
   const visibilityRaw = String(formData.get('visibility') || 'connections').trim();
@@ -46,15 +47,10 @@ export async function saveProfileBasicsAction(formData) {
   const payload = {
     id: currentUserId,
     user_id: currentUserId,
-    first_name: firstName,
-    last_name: lastName,
+    username,
     display_name: displayName || null,
     headline: headline || null,
     city: city || null,
-    industry: industry || null,
-    job_title: jobTitle || null,
-    location_city: locationCity || null,
-    location_state: locationState || null,
     interests,
     goals,
     visibility,

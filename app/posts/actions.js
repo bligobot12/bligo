@@ -38,24 +38,6 @@ export async function searchFromPostAction(formData) {
   redirect('/search?q=' + encodeURIComponent(query));
 }
 
-export async function updatePostAction(formData) {
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const user = session?.user;
-  if (!user) redirect('/login');
-
-  const postId = String(formData.get('post_id') || '').trim();
-  const content = String(formData.get('content') || '').trim();
-  const redirectTo = String(formData.get('redirect_to') || '/posts').trim();
-  if (!postId || !content) redirect(`${redirectTo}?error=` + enc('Missing post id or content'));
-
-  const { error } = await supabase.from('posts').update({ content, updated_at: new Date().toISOString() }).eq('id', postId).eq('user_id', user.id);
-  if (error) redirect(`${redirectTo}?error=` + enc(error.message));
-  redirect(`${redirectTo}?updated=1`);
-}
-
 export async function deletePostAction(formData) {
   const supabase = await createClient();
   const {
@@ -65,10 +47,9 @@ export async function deletePostAction(formData) {
   if (!user) redirect('/login');
 
   const postId = String(formData.get('post_id') || '').trim();
-  const redirectTo = String(formData.get('redirect_to') || '/history?tab=posts').trim();
-  if (!postId) redirect(`${redirectTo}${redirectTo.includes('?') ? '&' : '?'}error=` + enc('Missing post id'));
+  if (!postId) redirect('/history?tab=posts&error=' + enc('Missing post id'));
 
   const { error } = await supabase.from('posts').delete().eq('id', postId).eq('user_id', user.id);
-  if (error) redirect(`${redirectTo}${redirectTo.includes('?') ? '&' : '?'}error=` + enc(error.message));
-  redirect(`${redirectTo}${redirectTo.includes('?') ? '&' : '?'}deleted=1`);
+  if (error) redirect('/history?tab=posts&error=' + enc(error.message));
+  redirect('/history?tab=posts&deleted=1');
 }

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
-import PostCard from '../../components/PostCard';
+import { deletePostAction } from '../posts/actions';
 
 export default async function HistoryPage({ searchParams }) {
   const supabase = await createClient();
@@ -47,7 +47,14 @@ export default async function HistoryPage({ searchParams }) {
           <h3>Your posts</h3>
           <div className="feed" style={{ marginTop: 10 }}>
             {(posts || []).map((post) => (
-              <PostCard key={post.id} post={post} isOwner showMeta showSearch={false} redirectTo="/history?tab=posts" />
+              <div className="post-item" key={post.id}>
+                <p>{post.content}</p>
+                <p className="muted">{post.post_type} · {post.visibility} · {new Date(post.created_at).toLocaleString()}</p>
+                <form action={deletePostAction} style={{ marginTop: 8 }}>
+                  <input type="hidden" name="post_id" value={post.id} />
+                  <button className="button" type="submit">Delete</button>
+                </form>
+              </div>
             ))}
             {(posts || []).length === 0 ? <p className="muted">No posts yet.</p> : null}
           </div>

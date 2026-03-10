@@ -32,7 +32,7 @@ export default async function ChatPage({ params }) {
 
   const { data: friend } = await supabase
     .from('profiles')
-    .select('user_id, display_name, first_name, last_name, headline, avatar_url, job_title, industry, location_city, location_state')
+    .select('user_id, display_name, username, headline, avatar_url')
     .eq('user_id', targetUserId)
     .maybeSingle();
 

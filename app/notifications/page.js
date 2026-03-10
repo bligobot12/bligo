@@ -37,7 +37,7 @@ export default async function NotificationsPage() {
 
   const otherIds = [...new Set((acceptedRows || []).map((c) => (c.from_user_id === user.id ? c.to_user_id : c.from_user_id)))];
   const { data: names } = otherIds.length
-    ? await supabase.from('profiles').select('user_id, display_name, first_name, last_name').in('user_id', otherIds)
+    ? await supabase.from('profiles').select('user_id, display_name, username').in('user_id', otherIds)
     : { data: [] };
   const byId = new Map((names || []).map((n) => [n.user_id, n.display_name || n.username || 'Someone']));
 

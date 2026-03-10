@@ -1,8 +1,6 @@
 import { redirect } from 'next/navigation';
 
 import Avatar from '../../components/Avatar';
-import UserCard from '../../components/UserCard';
-import PostCard from '../../components/PostCard';
 import { createClient } from '../../lib/supabase/server';
 import { createPostAction, searchFromPostAction } from '../posts/actions';
 import {
@@ -24,14 +22,13 @@ export default async function HomePage({ searchParams }) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('user_id, first_name, last_name, display_name, headline, city, avatar_url, onboarding_complete, industry, job_title, location_city, location_state')
+    .select('user_id, username, display_name, headline, city, avatar_url, onboarding_complete')
     .eq('user_id', user.id)
     .maybeSingle();
 
   const safeProfile = profile || {
     user_id: user.id,
-    first_name: null,
-    last_name: null,
+    username: user.email?.split('@')[0] || 'user',
     display_name: null,
     headline: null,
     city: null,
@@ -46,7 +43,7 @@ export default async function HomePage({ searchParams }) {
 
   const { data: incomingRequests } = await supabase
     .from('connections')
-    .select('from_user_id, profiles:from_user_id(display_name,headline,avatar_url,job_title,industry,location_city,location_state)')
+    .select('from_user_id, profiles:from_user_id(username,display_name,headline)')
     .eq('to_user_id', user.id)
     .eq('status', 'pending')
     .order('created_at', { ascending: false })
@@ -131,9 +128,9 @@ export default async function HomePage({ searchParams }) {
           <div className="card" style={{ textAlign: 'center', paddingBottom: 16 }}>
             <div style={{ height: 60, background: 'linear-gradient(135deg, #1a1a3a, #2a2a5a)', borderRadius: '8px 8px 0 0', margin: '-16px -16px 0' }} />
 
-            <Avatar src={safeProfile.avatar_url} name={safeProfile.display_name || `${safeProfile.first_name || ""} ${safeProfile.last_name || ""}`.trim() || "You"} size={72} style={{ marginTop: -36, border: '3px solid #111' }} />
+            <Avatar src={safeProfile.avatar_url} name={safeProfile.display_name || safeProfile.username} size={72} style={{ marginTop: -36, border: '3px solid #111' }} />
 
-            <h3 style={{ margin: '8px 0 2px' }}>{safeProfile.display_name || `${safeProfile.first_name || ""} ${safeProfile.last_name || ""}`.trim() || "You"}</h3>
+            <h3 style={{ margin: '8px 0 2px' }}>{safeProfile.display_name || safeProfile.username}</h3>
             <p className="muted" style={{ margin: 0, fontSize: 13 }}>{safeProfile.headline || 'Add a headline'}</p>
             <p className="muted" style={{ margin: '2px 0 0', fontSize: 12 }}>{safeProfile.city || 'City not set'}</p>
 
@@ -165,7 +162,7 @@ export default async function HomePage({ searchParams }) {
         <main>
           <div className="card" style={{ marginBottom: 16 }}>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <Avatar src={safeProfile.avatar_url} name={safeProfile.display_name || `${safeProfile.first_name || ""} ${safeProfile.last_name || ""}`.trim() || "You"} size={40} />
+              <Avatar src={safeProfile.avatar_url} name={safeProfile.display_name || safeProfile.username} size={40} />
               <form action={createPostAction} style={{ flex: 1 }}>
                 <input
                   className="input"
@@ -186,18 +183,23 @@ export default async function HomePage({ searchParams }) {
               {(incomingRequests || []).map((req) => {
                 const from = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles;
                 return (
-                  <UserCard
-                    key={req.from_user_id}
-                    user={from}
-                    degree={getDegreLabel(null)}
-                    subtitle={from?.headline || ''}
-                    profileHref={`/profile/${req.from_user_id}`}
-                    messageHref={`/messages/${req.from_user_id}`}
-                    right={<div style={{ display: 'flex', gap: 6 }}>
-                      <form action={acceptConnectionRequestAction}><input type="hidden" name="from_user_id" value={req.from_user_id} /><button className="button primary" type="submit" style={{ padding: '4px 12px', fontSize: 12 }}>Accept</button></form>
-                      <form action={declineConnectionRequestAction}><input type="hidden" name="from_user_id" value={req.from_user_id} /><button className="button" type="submit" style={{ padding: '4px 12px', fontSize: 12 }}>Decline</button></form>
-                    </div>}
-                  />
+                  <div key={req.from_user_id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                    <Avatar name={from?.display_name || from?.username} size={40} />
+                    <div style={{ flex: 1 }}>
+                      <strong>{from?.display_name || from?.username} <span className="degree-badge">{getDegreLabel(null)}</span></strong>
+                      <p className="muted" style={{ margin: 0, fontSize: 12 }}>{from?.headline || ''}</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <form action={acceptConnectionRequestAction}>
+                        <input type="hidden" name="from_user_id" value={req.from_user_id} />
+                        <button className="button primary" type="submit" style={{ padding: '4px 12px', fontSize: 12 }}>Accept</button>
+                      </form>
+                      <form action={declineConnectionRequestAction}>
+                        <input type="hidden" name="from_user_id" value={req.from_user_id} />
+                        <button className="button" type="submit" style={{ padding: '4px 12px', fontSize: 12 }}>Decline</button>
+                      </form>
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -215,7 +217,26 @@ export default async function HomePage({ searchParams }) {
               const p = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
               return (
                 <div key={post.id} className="card">
-                  <PostCard post={post} author={`${p?.display_name || 'Unknown'} (${getDegreLabel(1)})`} showSearch showMeta={false} isOwner={post.user_id === user.id} redirectTo="/home" />
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <Avatar src={p?.avatar_url} name={p?.display_name || 'Unknown'} size={40} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <strong>{p?.display_name || 'Unknown'}</strong>
+                        <span className="degree-badge">{getDegreLabel(1)}</span>
+                        <span className="muted" style={{ fontSize: 11, marginLeft: 'auto' }}>
+                          {new Date(post.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="muted" style={{ margin: '2px 0 8px', fontSize: 12 }}>{p?.headline}</p>
+                      <p style={{ margin: 0 }}>{post.content}</p>
+                      <div style={{ marginTop: 10, borderTop: '1px solid #2a2a2a', paddingTop: 8 }}>
+                        <form action={searchFromPostAction} style={{ display: 'inline' }}>
+                          <input type="hidden" name="query" value={post.content} />
+                          <button className="button" type="submit" style={{ fontSize: 12 }}>Search now →</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               );
             })}
