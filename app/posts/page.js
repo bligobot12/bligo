@@ -3,6 +3,7 @@ import { createClient } from '../../lib/supabase/server';
 import { createPostAction } from './actions';
 import { searchFromPostAction } from '../search/actions';
 import { getDegreLabel } from '../../lib/ui/getDegreeLabel';
+import PostCard from '../../components/PostCard';
 
 export default async function PostsPage({ searchParams }) {
   const supabase = await createClient();
@@ -71,18 +72,7 @@ export default async function PostsPage({ searchParams }) {
         <div className="feed" style={{ marginTop: 8 }}>
           {(posts || []).map((post) => {
             const author = byUser.get(post.user_id);
-            return (
-              <article key={post.id} className="post-item">
-                <strong>{author?.display_name || 'User'} <span className="degree-badge">{getDegreLabel(post.user_id === user.id ? 1 : 1)}</span></strong>
-                <p className="muted">{author?.headline || 'No headline yet'}</p>
-                <p>{post.content}</p>
-                <p className="muted" style={{ marginTop: 6 }}>{new Date(post.created_at).toLocaleString()}</p>
-                <form action={searchFromPostAction} style={{ marginTop: 8 }}>
-                  <input type="hidden" name="query" value={post.content} />
-                  <button className="button" type="submit">Search now →</button>
-                </form>
-              </article>
-            );
+            return <PostCard key={post.id} post={post} author={`${author?.display_name || 'User'} (${getDegreLabel(1)})`} isOwner={post.user_id === user.id} />;
           })}
           {(posts || []).length === 0 ? <p className="muted">No posts yet.</p> : null}
         </div>
