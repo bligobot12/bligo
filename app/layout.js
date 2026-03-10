@@ -104,7 +104,7 @@ export default async function RootLayout({ children }) {
                     <Link href="/messages">Messages{unreadRequests > 0 ? <span className="notif-dot notif-dot-red" /> : unreadInbox > 0 ? <span className="notif-dot notif-dot-purple" /> : null}</Link>
                     <Link href="/notifications">Notifications{hasUnreadNotifications ? <span className="notif-dot" /> : null}</Link>
                     <Link href="/settings">Settings</Link>
-                    <Link href={`/profile/${user.id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <Link href={`/profile/${session.user.id}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Avatar src={navProfile?.avatar_url} name={navProfile?.display_name || `${navProfile?.first_name || ''} ${navProfile?.last_name || ''}`.trim() || 'You'} size={22} />
                       <span>{navProfile?.display_name || `${navProfile?.first_name || ''} ${navProfile?.last_name || ''}`.trim() || 'My Profile'}</span>
                     </Link>

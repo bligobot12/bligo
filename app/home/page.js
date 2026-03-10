@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import Avatar from '../../components/Avatar';
@@ -52,15 +53,17 @@ export default async function HomePage({ searchParams }) {
     .order('created_at', { ascending: false })
     .limit(5);
 
-  const { data: acceptedConnections } = await supabase
+  const { data: friendConns } = await supabase
     .from('connections')
     .select('from_user_id, to_user_id')
     .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
     .eq('status', 'accepted');
 
-  const directConnectionIds = new Set(
-    (acceptedConnections || []).map((c) => (c.from_user_id === user.id ? c.to_user_id : c.from_user_id))
-  );
+  const friendIds = new Set((friendConns || []).map((c) =>
+    c.from_user_id === user.id ? c.to_user_id : c.from_user_id
+  ));
+
+  const directConnectionIds = friendIds;
 
   const { count: connectionCount } = await supabase
     .from('connections')
@@ -76,13 +79,18 @@ export default async function HomePage({ searchParams }) {
 
   const { data: suggestedIntros } = await supabase
     .from('match_candidates')
-    .select('id, user_b_id, reason_why_now, shared_signals')
+    .select('id, user_a_id, user_b_id, reason_why_now, shared_signals')
     .eq('user_a_id', user.id)
     .eq('status', 'pending')
     .order('score', { ascending: false })
     .limit(3);
 
-  const matchedIds = (suggestedIntros || []).map((row) => row.user_b_id);
+  const filteredMatches = (suggestedIntros || []).filter((m) => {
+    const otherId = m.user_a_id === user.id ? m.user_b_id : m.user_a_id;
+    return !friendIds.has(otherId);
+  });
+
+  const matchedIds = filteredMatches.map((row) => row.user_b_id);
   const { data: matchedProfiles } = matchedIds.length
     ? await supabase
         .from('profiles')
@@ -133,7 +141,9 @@ export default async function HomePage({ searchParams }) {
 
             <Avatar src={safeProfile.avatar_url} name={safeProfile.display_name || `${safeProfile.first_name || ""} ${safeProfile.last_name || ""}`.trim() || "You"} size={72} style={{ marginTop: -36, border: '3px solid #111' }} />
 
-            <h3 style={{ margin: '8px 0 2px' }}>{safeProfile.display_name || `${safeProfile.first_name || ""} ${safeProfile.last_name || ""}`.trim() || "You"}</h3>
+            <h3 style={{ margin: '8px 0 2px' }}>
+              <Link href={`/profile/${user.id}`}>{safeProfile.display_name || `${safeProfile.first_name || ""} ${safeProfile.last_name || ""}`.trim() || "You"}</Link>
+            </h3>
             <p className="muted" style={{ margin: 0, fontSize: 13 }}>{safeProfile.headline || 'Add a headline'}</p>
             <p className="muted" style={{ margin: '2px 0 0', fontSize: 12 }}>{safeProfile.city || 'City not set'}</p>
 
@@ -225,9 +235,9 @@ export default async function HomePage({ searchParams }) {
         <aside>
           <div className="card" style={{ marginBottom: 16 }}>
             <h4 style={{ margin: '0 0 12px' }}>People you should meet</h4>
-            {(suggestedIntros || []).length === 0 ? (
+            {(filteredMatches || []).length === 0 ? (
               <p className="muted" style={{ fontSize: 13 }}>No suggestions yet — your matches will appear here.</p>
-            ) : (suggestedIntros || []).map((match) => {
+            ) : (filteredMatches || []).map((match) => {
               const matched = matchedById.get(match.user_b_id);
               return (
                 <div key={match.id} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #2a2a2a' }}>
