@@ -52,7 +52,7 @@ export async function middleware(request) {
   const needsAuth = [
     '/home',
     '/onboarding',
-    '/messages',
+
     '/connections',
     '/settings',
     '/profile',
