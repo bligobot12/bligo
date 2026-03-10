@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import { createPostAction } from './actions';
 import { searchFromPostAction } from '../search/actions';
+import { getDegreLabel } from '../../lib/ui/getDegreeLabel';
 
 export default async function PostsPage({ searchParams }) {
   const supabase = await createClient();
@@ -72,7 +73,7 @@ export default async function PostsPage({ searchParams }) {
             const author = byUser.get(post.user_id);
             return (
               <article key={post.id} className="post-item">
-                <strong>{author?.display_name || 'User'}</strong>
+                <strong>{author?.display_name || 'User'} <span className="degree-badge">{getDegreLabel(post.user_id === user.id ? 1 : 1)}</span></strong>
                 <p className="muted">{author?.headline || 'No headline yet'}</p>
                 <p>{post.content}</p>
                 <p className="muted" style={{ marginTop: 6 }}>{new Date(post.created_at).toLocaleString()}</p>

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 
 import { createClient } from '../../lib/supabase/server';
 import { sendConnectionRequestAction } from './actions';
+import { getDegreLabel } from '../../lib/ui/getDegreeLabel';
 
 export default async function ConnectionsPage({ searchParams }) {
   const supabase = await createClient();
@@ -93,7 +94,7 @@ export default async function ConnectionsPage({ searchParams }) {
             const from = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles;
             return (
               <div key={req.from_user_id} className="post-item">
-                <strong>{from?.display_name || from?.username || req.from_user_id}</strong>
+                <strong>{from?.display_name || from?.username || req.from_user_id} <span className="degree-badge">{getDegreLabel(null)}</span></strong>
                 <p className="muted">{from?.headline || 'No headline yet'}</p>
                 <p className="muted">{from?.city || 'City not set'}</p>
               </div>
@@ -108,7 +109,7 @@ export default async function ConnectionsPage({ searchParams }) {
             const to = Array.isArray(req.profiles) ? req.profiles[0] : req.profiles;
             return (
               <div key={req.to_user_id} className="post-item">
-                <strong>{to?.display_name || to?.username || req.to_user_id}</strong>
+                <strong>{to?.display_name || to?.username || req.to_user_id} <span className="degree-badge">{getDegreLabel(null)}</span></strong>
                 <p className="muted">{to?.headline || 'No headline yet'}</p>
                 <p className="muted">{to?.city || 'City not set'}</p>
                 <p className="muted">Pending</p>
@@ -129,7 +130,7 @@ export default async function ConnectionsPage({ searchParams }) {
             return (
               <div key={p.user_id} className="post-item" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
                 <div>
-                  <strong>{p.display_name || p.username || p.user_id}</strong>
+                  <strong>{p.display_name || p.username || p.user_id} <span className="degree-badge">{getDegreLabel(status === 'accepted' ? 1 : null)}</span></strong>
                   <p className="muted">{p.headline || 'No headline yet'}</p>
                   <p className="muted">{p.city || 'City not set'}</p>
                 </div>

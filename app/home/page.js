@@ -9,6 +9,7 @@ import {
   sendConnectionRequestAction,
 } from '../connections/actions';
 import { respondToIntroAction, runMatchingNowAction } from '../matching/actions';
+import { getDegreLabel } from '../../lib/ui/getDegreeLabel';
 
 export default async function HomePage({ searchParams }) {
   const supabase = await createClient();
@@ -186,7 +187,7 @@ export default async function HomePage({ searchParams }) {
                   <div key={req.from_user_id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                     <Avatar name={from?.display_name || from?.username} size={40} />
                     <div style={{ flex: 1 }}>
-                      <strong>{from?.display_name || from?.username}</strong>
+                      <strong>{from?.display_name || from?.username} <span className="degree-badge">{getDegreLabel(null)}</span></strong>
                       <p className="muted" style={{ margin: 0, fontSize: 12 }}>{from?.headline || ''}</p>
                     </div>
                     <div style={{ display: 'flex', gap: 6 }}>
@@ -222,7 +223,7 @@ export default async function HomePage({ searchParams }) {
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <strong>{p?.display_name || 'Unknown'}</strong>
-                        <span className="degree-badge">· 1st</span>
+                        <span className="degree-badge">{getDegreLabel(1)}</span>
                         <span className="muted" style={{ fontSize: 11, marginLeft: 'auto' }}>
                           {new Date(post.created_at).toLocaleDateString()}
                         </span>
@@ -256,7 +257,7 @@ export default async function HomePage({ searchParams }) {
                     <Avatar src={matched?.avatar_url} name={matched?.display_name} size={40} />
                     <div style={{ flex: 1 }}>
                       <strong style={{ fontSize: 14 }}>{matched?.display_name || 'Someone new'}</strong>
-                      <span className="degree-badge"> · 2nd</span>
+                      <span className="degree-badge"> {getDegreLabel(2)}</span>
                       <p className="muted" style={{ margin: '2px 0', fontSize: 12 }}>{matched?.headline}</p>
                       <p style={{ margin: '4px 0', fontSize: 12 }}>{match.reason_why_now || 'Strong signal overlap'}</p>
                       <div style={{ marginTop: 4 }}>
@@ -294,7 +295,7 @@ export default async function HomePage({ searchParams }) {
               <div key={u.user_id} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
                 <Avatar src={u.avatar_url} name={u.display_name} size={36} />
                 <div style={{ flex: 1 }}>
-                  <strong style={{ fontSize: 13 }}>{u.display_name}</strong>
+                  <strong style={{ fontSize: 13 }}>{u.display_name} <span className="degree-badge">{getDegreLabel(null)}</span></strong>
                   <p className="muted" style={{ margin: 0, fontSize: 11 }}>{u.city}</p>
                 </div>
                 <form action={sendConnectionRequestAction}>

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
 import { runSearchByQueryAction, searchUsersAction } from './actions';
+import { getDegreLabel } from '../../lib/ui/getDegreeLabel';
 
 function TierSection({ title, rows, type, viaById }) {
   return (
@@ -12,7 +13,7 @@ function TierSection({ title, rows, type, viaById }) {
           <div key={row.user_id} className="post-item">
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
               <div>
-                <strong>{row.display_name || 'Unnamed user'}</strong>
+                <strong>{row.display_name || 'Unnamed user'} <span className="degree-badge">{getDegreLabel(type === 'first' ? 1 : type === 'second' ? 2 : row.via ? 3 : null)}</span></strong>
                 <p className="muted">{row.headline || 'No headline yet'}</p>
                 <p className="muted">{row.city || 'City not set'}</p>
               </div>
