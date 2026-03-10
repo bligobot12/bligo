@@ -3,7 +3,7 @@ import { createClient } from '../../lib/supabase/server';
 
 export default async function ProfilePage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  redirect(`/profile/${user.id}`);
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) redirect('/login');
+  redirect(`/profile/${session.user.id}`);
 }
