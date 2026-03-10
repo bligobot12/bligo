@@ -4,23 +4,39 @@ import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Avatar from '../../../components/Avatar';
 
-export default function Chat({ currentUserId, friend, initialMessages, supabaseUrl, supabaseAnonKey }) {
+export default function Chat({ currentUserId, friend, initialMessages, supabaseUrl, supabaseAnonKey, requireClientAuth = false }) {
   const [messages, setMessages] = useState(initialMessages || []);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [currentUser, setCurrentUser] = useState(currentUserId);
   const bottomRef = useRef(null);
   const sbRef = useRef(null);
 
   useEffect(() => {
+    if (!currentUser || requireClientAuth) {
+      const sb = createClient(supabaseUrl, supabaseAnonKey);
+      sb.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          setCurrentUser(session.user.id);
+        } else {
+          window.location.href = '/login';
+        }
+      });
+    }
+  }, [currentUser, requireClientAuth, supabaseUrl, supabaseAnonKey]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
     sbRef.current = createClient(supabaseUrl, supabaseAnonKey);
 
     const channel = sbRef.current
-      .channel(`chat:${[currentUserId, friend.user_id].sort().join(':')}`)
+      .channel(`chat:${[currentUser, friend.user_id].sort().join(':')}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
-        filter: `to_user_id=eq.${currentUserId}`,
+        filter: `to_user_id=eq.${currentUser}`,
       }, (payload) => {
         if (payload.new.from_user_id === friend.user_id) {
           setMessages((prev) => [...prev, payload.new]);
@@ -33,7 +49,7 @@ export default function Chat({ currentUserId, friend, initialMessages, supabaseU
         event: 'UPDATE',
         schema: 'public',
         table: 'messages',
-        filter: `from_user_id=eq.${currentUserId}`,
+        filter: `from_user_id=eq.${currentUser}`,
       }, (payload) => {
         if (payload.new.to_user_id === friend.user_id) {
           setMessages((prev) => prev.map((m) => (
@@ -46,7 +62,7 @@ export default function Chat({ currentUserId, friend, initialMessages, supabaseU
     return () => {
       if (sbRef.current) sbRef.current.removeChannel(channel);
     };
-  }, [currentUserId, friend.user_id, supabaseUrl, supabaseAnonKey]);
+  }, [currentUser, friend.user_id, supabaseUrl, supabaseAnonKey]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -54,14 +70,14 @@ export default function Chat({ currentUserId, friend, initialMessages, supabaseU
 
   async function sendMessage(e) {
     e.preventDefault();
-    if (!input.trim() || sending) return;
+    if (!input.trim() || sending || !currentUser) return;
 
     setSending(true);
     const content = input.trim();
 
     const optimistic = {
       id: `temp-${Date.now()}`,
-      from_user_id: currentUserId,
+      from_user_id: currentUser,
       to_user_id: friend.user_id,
       content,
       created_at: new Date().toISOString(),
@@ -75,7 +91,7 @@ export default function Chat({ currentUserId, friend, initialMessages, supabaseU
     const { data, error } = await sbRef.current
       .from('messages')
       .insert({
-        from_user_id: currentUserId,
+        from_user_id: currentUser,
         to_user_id: friend.user_id,
         content,
       })
@@ -104,9 +120,17 @@ export default function Chat({ currentUserId, friend, initialMessages, supabaseU
   }
 
   const lastSentIndex = messages
-    .map((m, i) => (m.from_user_id === currentUserId ? i : -1))
+    .map((m, i) => (m.from_user_id === currentUser ? i : -1))
     .filter((i) => i >= 0)
     .pop();
+
+  if (!currentUser) {
+    return (
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: 40 }}>
+        <p className="muted">Checking your session…</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)' }}>
@@ -114,7 +138,7 @@ export default function Chat({ currentUserId, friend, initialMessages, supabaseU
         <a href="/messages" style={{ color: '#888', textDecoration: 'none', fontSize: 20 }}>←</a>
         <Avatar src={friend?.avatar_url} name={friend?.display_name || friend?.username} size={40} />
         <div>
-          <strong>{friend?.display_name || friend?.username}</strong>
+          <strong>{friend?.display_name || friend?.username || 'Conversation'}</strong>
           <p className="muted" style={{ margin: 0, fontSize: 12 }}>{friend?.headline}</p>
         </div>
       </div>
@@ -122,12 +146,12 @@ export default function Chat({ currentUserId, friend, initialMessages, supabaseU
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6, padding: '4px 0' }}>
         {messages.length === 0 && (
           <p className="muted" style={{ textAlign: 'center', marginTop: 60 }}>
-            No messages yet — say hi to {friend?.display_name || friend?.username}!
+            No messages yet — say hi to {friend?.display_name || friend?.username || 'them'}!
           </p>
         )}
 
         {messages.map((msg, idx) => {
-          const isMe = msg.from_user_id === currentUserId;
+          const isMe = msg.from_user_id === currentUser;
           const isLastSent = isMe && idx === lastSentIndex;
           return (
             <div key={msg.id}>
@@ -172,7 +196,7 @@ export default function Chat({ currentUserId, friend, initialMessages, supabaseU
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={`Message ${friend?.display_name || friend?.username}…`}
+          placeholder={`Message ${friend?.display_name || friend?.username || 'them'}…`}
           rows={1}
           style={{
             flex: 1,
