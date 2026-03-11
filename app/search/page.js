@@ -1,100 +1,177 @@
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { createClient } from '../../lib/supabase/server';
-import { runSearchByQueryAction, searchUsersAction } from './actions';
-import { getDegreLabel } from '../../lib/ui/getDegreeLabel';
-import UserCard from '../../components/UserCard';
+'use client';
+import { useState } from 'react';
+import Avatar from '../../components/Avatar';
 
-function TierSection({ title, rows, type, viaById }) {
-  return (
-    <section className="card">
-      <h3>{title}</h3>
-      <div className="feed" style={{ marginTop: 8 }}>
-        {rows.map((row) => (
-          <div key={row.user_id}>
-            <UserCard
-              user={row}
-              degree={getDegreLabel(type === 'first' ? 1 : type === 'second' ? 2 : row.via ? 3 : null)}
-              subtitle={row.headline || 'No headline yet'}
-              profileHref={`/profile/${row.user_id}`}
-              messageHref={`/messages/${row.user_id}`}
-              right={type === 'first' ? null : <Link className="button" href="/connections">Connect</Link>}
-            />
-            <div style={{ fontSize: 24, fontWeight: 700, marginTop: -12, marginBottom: 8 }}>{row.match_pct}%</div>
-            {row.via ? <p className="muted" style={{ marginTop: -8 }}>Via {viaById[row.via] || 'a trusted connection'}</p> : null}
-          </div>
-        ))}
-        {rows.length === 0 ? <p className="muted">No matches in this tier yet.</p> : null}
-      </div>
-    </section>
-  );
-}
+const INTENT_TYPES = [
+  { value: 'trade_service', label: '🔨 Local Trade/Service' },
+  { value: 'investment', label: '💰 Investment/Capital' },
+  { value: 'advisory', label: '🧠 Advisory/Mentorship' },
+  { value: 'partnership', label: '🤝 Partnership' },
+  { value: 'virtual_service', label: '💻 Virtual Service' },
+  { value: 'vendor_supplier', label: '📦 Vendor/Supplier' },
+];
 
-export default async function SearchPage({ searchParams }) {
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+export default function SearchPage() {
+  const [query, setQuery] = useState('');
+  const [classifying, setClassifying] = useState(false);
+  const [classified, setClassified] = useState(null);
+  const [intentOverride, setIntentOverride] = useState(null);
+  const [results, setResults] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const [error, setError] = useState(null);
 
-  const user = session?.user;
-  if (!user) redirect('/login');
+  async function handleSearch() {
+    if (!query.trim()) return;
+    setClassifying(true);
+    setResults(null);
+    setError(null);
+    setClassified(null);
 
-  const params = await searchParams;
-  const q = String(params?.q || '').trim();
-  const error = params?.error ? decodeURIComponent(params.error) : '';
+    const classRes = await fetch('/api/search/classify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+    const classData = await classRes.json();
+    setClassified(classData);
+    setIntentOverride(null);
+    setClassifying(false);
 
-  let latest = null;
-  let actionError = '';
-
-  if (q) {
-    const run = await runSearchByQueryAction(q);
-    if (run?.error) actionError = run.error;
+    await runSearch(classData.intent_type, classData.intent_tags, classData.location);
   }
 
-  const { data: latestSearch } = await supabase
-    .from('searches')
-    .select('query, results, created_at')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  async function runSearch(intent_type, intent_tags, location) {
+    setSearching(true);
+    const res = await fetch('/api/search/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, intent_type, intent_tags, location, max_results: 20 }),
+    });
+    const data = await res.json();
+    if (data.error) setError(data.error);
+    else setResults(data.results || []);
+    setSearching(false);
+  }
 
-  latest = latestSearch;
+  async function handleIntentChange(newIntent) {
+    setIntentOverride(newIntent);
+    if (classified) {
+      await runSearch(newIntent, classified.intent_tags, classified.location);
+    }
+  }
 
-  const results = latest?.results && typeof latest.results === 'object'
-    ? latest.results
-    : { first: [], second: [], third: [] };
-
-  const viaIds = [
-    ...new Set([...(results.second || []).map((r) => r.via), ...(results.third || []).map((r) => r.via)].filter(Boolean)),
-  ];
-
-  const { data: viaProfiles } = viaIds.length
-    ? await supabase.from('profiles').select('user_id, display_name, first_name, last_name').in('user_id', viaIds)
-    : { data: [] };
-
-  const viaById = Object.fromEntries(
-    (viaProfiles || []).map((p) => [p.user_id, p.display_name || `${p.first_name || ""} ${p.last_name || ""}`.trim() || 'connection'])
-  );
+  const activeIntent = intentOverride || classified?.intent_type;
 
   return (
-    <div className="form-col" style={{ maxWidth: 980 }}>
+    <div className="form-col" style={{ maxWidth: 860 }}>
       <section className="card">
         <h2>Search</h2>
-        <p className="muted">Search privately across your trust graph.</p>
-        <form action={searchUsersAction} className="form-col" style={{ marginTop: 10 }}>
-          <input className="input" name="query" placeholder="Try: founder fintech nyc" defaultValue={q || latest?.query || ''} />
-          <div className="actions" style={{ marginTop: 0 }}>
-            <button className="button primary" type="submit">Search</button>
+        <p className="muted" style={{ marginBottom: 4 }}>
+          Describe what you're looking for in plain English.
+        </p>
+        <p className="muted" style={{ marginBottom: 12, fontSize: 13 }}>
+          💡 <strong>Best results:</strong> search using your AI bot via the API — it sends richer context automatically.
+        </p>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            className="input"
+            style={{ flex: 1 }}
+            placeholder="e.g. framing contractor in Westchester, or SaaS startup advisor"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          />
+          <button
+            className="button primary"
+            onClick={handleSearch}
+            disabled={classifying || searching}
+          >
+            {classifying ? 'Classifying...' : searching ? 'Searching...' : 'Search'}
+          </button>
+        </div>
+
+        {classified && (
+          <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span className="muted" style={{ fontSize: 13 }}>Searching as:</span>
+            <select
+              className="input"
+              style={{ width: 'auto', fontSize: 13, padding: '4px 8px' }}
+              value={activeIntent}
+              onChange={(e) => handleIntentChange(e.target.value)}
+            >
+              {INTENT_TYPES.map((i) => (
+                <option key={i.value} value={i.value}>{i.label}</option>
+              ))}
+            </select>
+            {classified.location && (
+              <span className="signal-chip">📍 {classified.location}</span>
+            )}
+            {classified.intent_tags?.length > 0 && (
+              <span className="muted" style={{ fontSize: 12 }}>
+                Tags: {classified.intent_tags.join(', ')}
+              </span>
+            )}
           </div>
-        </form>
-        {error ? <p style={{ color: '#ff9da3', marginTop: 8 }}>{error}</p> : null}
-        {actionError ? <p style={{ color: '#ff9da3', marginTop: 8 }}>{actionError}</p> : null}
+        )}
       </section>
 
-      <TierSection title="Your connections (1st)" rows={results.first || []} type="first" viaById={viaById} />
-      <TierSection title="Friends of friends (2nd)" rows={results.second || []} type="second" viaById={viaById} />
-      <TierSection title="Extended network (3rd+)" rows={results.third || []} type="third" viaById={viaById} />
+      {error && (
+        <div className="card" style={{ borderColor: '#ff6b6b' }}>
+          <p style={{ color: '#ff6b6b', margin: 0 }}>{error}</p>
+        </div>
+      )}
+
+      {results !== null && (
+        <section className="card">
+          <h3 style={{ marginTop: 0 }}>{results.length} result{results.length !== 1 ? 's' : ''}</h3>
+          {results.length === 0 && (
+            <p className="muted">No matches found. Try broadening your search or removing the location.</p>
+          )}
+          {results.map((r) => (
+            <div key={r.user_id} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '16px 0', borderBottom: '1px solid #2a2a2a' }}>
+              <a href={`/profile/${r.user_id}`}>
+                <Avatar src={r.avatar_url} name={r.display_name} size={52} />
+              </a>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <a href={`/profile/${r.user_id}`} style={{ fontWeight: 700, fontSize: 15, textDecoration: 'none', color: '#fff' }}>
+                    {r.display_name}
+                  </a>
+                  {r.degree && (
+                    <span className="muted" style={{ fontSize: 12 }}>· {r.degree === 1 ? '1st' : '2nd'}</span>
+                  )}
+                  <span style={{ marginLeft: 'auto', fontSize: 12, color: '#7c6af7', fontWeight: 700 }}>
+                    {r.score}pts
+                  </span>
+                </div>
+                {(r.job_title || r.headline) && (
+                  <p className="muted" style={{ margin: '3px 0', fontSize: 13 }}>
+                    {r.job_title || r.headline}
+                  </p>
+                )}
+                {r.specialty?.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, margin: '6px 0' }}>
+                    {r.specialty.slice(0, 5).map((s) => (
+                      <span key={s} className="signal-chip" style={{ fontSize: 11 }}>{s}</span>
+                    ))}
+                  </div>
+                )}
+                {r.why && (
+                  <p className="muted" style={{ fontSize: 12, margin: '4px 0' }}>✓ {r.why}</p>
+                )}
+                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                  <a href={`/profile/${r.user_id}`} className="button" style={{ fontSize: 12, padding: '4px 14px' }}>
+                    View profile
+                  </a>
+                  <a href={`/messages/${r.user_id}`} className="button" style={{ fontSize: 12, padding: '4px 14px' }}>
+                    Message
+                  </a>
+                </div>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
     </div>
   );
 }
