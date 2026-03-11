@@ -55,13 +55,14 @@ export default async function PublicProfilePage({ params }) {
     );
   }
 
-  const { data: posts } = await supabase
+  let postsQuery = supabase
     .from('posts')
-    .select('id, content, created_at')
+    .select('id, content, created_at, visibility')
     .eq('user_id', userId)
-    .eq('visibility', 'public')
     .order('created_at', { ascending: false })
     .limit(10);
+  if (!isOwn) postsQuery = postsQuery.eq('visibility', 'public');
+  const { data: posts } = await postsQuery;
 
   const { count: friendsCount } = await supabase
     .from('connections')
@@ -92,7 +93,7 @@ export default async function PublicProfilePage({ params }) {
 
       <section className="card">
         <h3>Job</h3>
-        <p style={{ margin: 0 }}>{profile.job_title || 'No job title yet'}</p>
+        <p style={{ margin: 0 }}>{profile.job_title || profile.headline || 'No job title yet'}</p>
         <p className="muted" style={{ marginTop: 4 }}>{profile.industry || 'No industry yet'}</p>
 
         <h4 style={{ margin: '12px 0 8px' }}>Specialties</h4>
@@ -132,7 +133,7 @@ export default async function PublicProfilePage({ params }) {
       </section>
 
       <section className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link href="/connections">{friendsCount || 0} friends</Link>
+        <Link href="/connections">{friendsCount || 0} {(friendsCount || 0) === 1 ? 'friend' : 'friends'}</Link>
         {!isOwn && (
           <a href={`/messages/${userId}`} className="button">Message</a>
         )}
