@@ -98,7 +98,7 @@ export default async function PublicProfilePage({ params }) {
           <Avatar src={profile.avatar_url} name={name} size={80} />
           <div style={{ flex: 1 }}>
             <h2 style={{ margin: 0 }}>{name}</h2>
-            <p className="muted" style={{ margin: '4px 0' }}>{[profile.job_title, profile.industry].filter(Boolean).join(' · ') || profile.headline}</p>
+            <p className="muted" style={{ margin: '4px 0' }}>{profile.headline || 'Add a headline...'}</p>
             <p className="muted" style={{ margin: '4px 0' }}>{location}</p>
             {profile.bio && <p style={{ marginTop: 8 }}>{profile.bio}</p>}
           </div>

@@ -10,12 +10,13 @@ export async function POST(request) {
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await request.json();
-  const { display_name, job_title, industry, location_city, location_state, bio } = body;
+  const { display_name, headline, job_title, industry, location_city, location_state, bio } = body;
 
   const { error } = await supabase
     .from('profiles')
     .update({
       display_name,
+      headline,
       job_title,
       industry,
       location_city,

@@ -27,6 +27,7 @@ export default function EditProfile({ profile }) {
       {open && (
         <div className="card" style={{ position: 'absolute', right: 0, top: 'calc(100% + 10px)', width: 560, maxWidth: '90vw', zIndex: 20 }}>
           <form onSubmit={handleSubmit} className="form-col">
+            <input className="input" name="headline" defaultValue={profile?.headline || ''} placeholder="Headline — e.g. Builder · Founder · Dad" />
             <input className="input" name="display_name" defaultValue={profile?.display_name || ''} placeholder="Display name" />
             <textarea className="input" name="job_title" defaultValue={profile?.job_title || ''} rows={3} placeholder="Job title(s)" style={{ width: '100%', resize: 'vertical' }} />
             <input className="input" name="industry" defaultValue={profile?.industry || ''} placeholder="Industry" />
