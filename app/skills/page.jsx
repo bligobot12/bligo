@@ -10,6 +10,7 @@ export default function SkillsPage() {
   const [saved, setSaved] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showSetup, setShowSetup] = useState(false);
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -80,7 +81,7 @@ export default function SkillsPage() {
     }
   }
 
-  const botPrompt = `You are helping me build my Bligo AI skills profile. Ask me questions about:
+  const botPrompt = `You are helping me build my Bligo AI skills profile. This works with any AI including ChatGPT, Claude, and OpenClaw. Ask me questions about:
 1. Work history & experience
 2. Technical skills & tools
 3. Industry knowledge
@@ -104,6 +105,47 @@ Start by asking about my current work.`;
         <p className="muted" style={{ marginTop: 4 }}>
           Build your AI Designated Skills profile through conversation. Choose the guided chat below or take the prompt to your own bot.
         </p>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <button className="button" onClick={() => setShowSetup((v) => !v)}>
+          {showSetup ? 'Hide setup' : '🔌 Chatbot Setup Instructions'}
+        </button>
+
+        {showSetup && (
+          <div className="card" style={{ marginTop: 12 }}>
+            <h3 style={{ marginTop: 0 }}>Connect your AI bot to Bligo</h3>
+            <p className="muted">Any AI assistant can push skills to your profile using your API key. Follow the instructions for your bot:</p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 16 }}>
+              <div style={{ background: '#0d0d1a', borderRadius: 8, padding: 16 }}>
+                <h4 style={{ margin: '0 0 8px' }}>🤖 OpenClaw / Custom Bot</h4>
+                <p className="muted" style={{ fontSize: 13 }}>Copy the prompt from the panel below. Your bot will interview you and push skills automatically via the Bligo API.</p>
+                <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>API endpoint: <code>POST /api/v1/profile</code><br />Header: <code>x-api-key: YOUR_KEY</code></p>
+              </div>
+
+              <div style={{ background: '#0d0d1a', borderRadius: 8, padding: 16 }}>
+                <h4 style={{ margin: '0 0 8px' }}>💬 ChatGPT</h4>
+                <p className="muted" style={{ fontSize: 13 }}>1. Open ChatGPT<br />2. Start a new chat<br />3. Paste the prompt from the panel below<br />4. Answer the questions<br />5. Tell ChatGPT: "Now post my skills to Bligo"</p>
+                <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>Note: ChatGPT will need the API Action enabled or you can copy the JSON and paste it manually.</p>
+              </div>
+
+              <div style={{ background: '#0d0d1a', borderRadius: 8, padding: 16 }}>
+                <h4 style={{ margin: '0 0 8px' }}>🔷 Claude (Anthropic)</h4>
+                <p className="muted" style={{ fontSize: 13 }}>1. Open Claude.ai<br />2. Start a new chat<br />3. Paste the prompt from the panel below<br />4. Answer the questions<br />5. Claude will extract your skills and give you the API call to run</p>
+                <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>Note: Claude can't make API calls directly — copy the JSON output and use your terminal or API tester.</p>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16, padding: 12, background: '#0d0d1a', borderRadius: 8 }}>
+              <p className="muted" style={{ fontSize: 13, margin: 0 }}>
+                🔑 Your API key: <code style={{ color: '#7c6af7' }}>{apiKey || 'Loading...'}</code>
+                <br />
+                <span style={{ fontSize: 11 }}>Keep this private. Use it to connect any AI bot to your Bligo profile.</span>
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
@@ -168,7 +210,10 @@ Start by asking about my current work.`;
         </div>
 
         <div className="card" style={{ display: 'flex', flexDirection: 'column', height: 600 }}>
-          <h3 style={{ margin: '0 0 8px' }}>🤖 Use your own bot</h3>
+          <h3 style={{ margin: '0 0 8px' }}>🤖 Universal Bot Prompt</h3>
+          <p className="muted" style={{ fontSize: 12, marginBottom: 8 }}>
+            Works with: OpenClaw · ChatGPT · Claude · Gemini · any AI assistant
+          </p>
           <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
             Copy this prompt into OpenClaw, ChatGPT, or any AI assistant. Your bot will ask you questions and automatically push your skills to Bligo.
           </p>
