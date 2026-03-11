@@ -64,11 +64,28 @@ export default async function PublicProfilePage({ params }) {
   if (!isOwn) postsQuery = postsQuery.eq('visibility', 'public');
   const { data: posts } = await postsQuery;
 
+  const { data: friendConns } = await supabase
+    .from('connections')
+    .select('from_user_id, to_user_id')
+    .or(`from_user_id.eq.${userId},to_user_id.eq.${userId}`)
+    .eq('status', 'accepted');
+
+  const friendIds = (friendConns || []).map((c) =>
+    c.from_user_id === userId ? c.to_user_id : c.from_user_id
+  );
+
   const { count: friendsCount } = await supabase
     .from('connections')
     .select('*', { count: 'exact', head: true })
     .or(`from_user_id.eq.${userId},to_user_id.eq.${userId}`)
     .eq('status', 'accepted');
+
+  const { data: friendProfiles } = friendIds.length
+    ? await supabase
+        .from('profiles')
+        .select('user_id, display_name, first_name, last_name, avatar_url')
+        .in('user_id', friendIds.slice(0, 8))
+    : { data: [] };
 
   const location = [profile.location_city || profile.city, profile.location_state].filter(Boolean).join(', ');
   const specialties = asArray(profile.specialty);
@@ -85,11 +102,9 @@ export default async function PublicProfilePage({ params }) {
             <p className="muted" style={{ margin: '4px 0' }}>{location}</p>
             {profile.bio && <p style={{ marginTop: 8 }}>{profile.bio}</p>}
           </div>
-          {isOwn && <span className="button" style={{ opacity: 0.85 }}>Own profile</span>}
+          {isOwn && <EditProfile profile={profile} updateAction={updateProfileAction} />}
         </div>
       </section>
-
-      {isOwn ? <EditProfile profile={profile} updateAction={updateProfileAction} /> : null}
 
       <section className="card">
         <h3>Job</h3>
@@ -132,20 +147,38 @@ export default async function PublicProfilePage({ params }) {
         ))}
       </section>
 
-      <section className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link href="/connections">{friendsCount || 0} {(friendsCount || 0) === 1 ? 'friend' : 'friends'}</Link>
-        {!isOwn && (
-          <a href={`/messages/${userId}`} className="button">Message</a>
-        )}
+      <section className="card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <h3 style={{ margin: 0 }}>{friendsCount || 0} {(friendsCount || 0) === 1 ? 'friend' : 'friends'}</h3>
+          {(friendsCount || 0) > 8 && <Link href="/connections" className="muted" style={{ fontSize: 12 }}>See all →</Link>}
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+          {(friendProfiles || []).map((f) => {
+            const fname = f.display_name || [f.first_name, f.last_name].filter(Boolean).join(' ') || 'Unknown';
+            return (
+              <Link key={f.user_id} href={`/profile/${f.user_id}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
+                <Avatar src={f.avatar_url} name={fname} size={44} />
+                <span style={{ fontSize: 11, color: '#ccc' }}>{fname.split(' ')[0]}</span>
+              </Link>
+            );
+          })}
+          {(friendProfiles || []).length === 0 ? <p className="muted">No friends yet.</p> : null}
+        </div>
       </section>
 
       <section className="card">
         <h3>Public posts</h3>
         {(posts || []).length === 0 ? <p className="muted">No public posts yet.</p> : null}
         {(posts || []).map((post) => (
-          <div key={post.id} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #2a2a2a' }}>
+          <div key={post.id} className="card" style={{ marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <Avatar src={profile.avatar_url} name={name} size={36} />
+              <div>
+                <strong style={{ fontSize: 14 }}>{name}</strong>
+                <p className="muted" style={{ margin: 0, fontSize: 11 }}>{new Date(post.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
             <p style={{ margin: 0 }}>{post.content}</p>
-            <p className="muted" style={{ fontSize: 11, marginTop: 6 }}>{new Date(post.created_at).toLocaleDateString()}</p>
           </div>
         ))}
       </section>
