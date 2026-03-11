@@ -64,8 +64,8 @@ export async function deletePostAction(formData) {
   const user = session?.user;
   if (!user) redirect('/login');
 
-  const postId = String(formData.get('post_id') || '').trim();
-  const redirectTo = String(formData.get('redirect_to') || '/history?tab=posts').trim();
+  const postId = String(formData.get('post_id') || formData.get('postId') || '').trim();
+  const redirectTo = String(formData.get('redirect_to') || formData.get('redirectTo') || '/history?tab=posts').trim();
   if (!postId) redirect(`${redirectTo}${redirectTo.includes('?') ? '&' : '?'}error=` + enc('Missing post id'));
 
   const { error } = await supabase.from('posts').delete().eq('id', postId).eq('user_id', user.id);

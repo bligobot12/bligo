@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import Avatar from './Avatar';
 
-export default function PostCard({ post, currentUserId, onDelete, onUpdate }) {
+export default function PostCard({ post, currentUserId, deleteAction, onUpdate }) {
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(post.content);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -32,7 +32,11 @@ export default function PostCard({ post, currentUserId, onDelete, onUpdate }) {
                 {menuOpen && (
                   <div style={{ position: 'absolute', right: 0, top: 24, background: '#1e1e2e', border: '1px solid #2a2a2a', borderRadius: 8, zIndex: 10, minWidth: 120 }}>
                     <button onClick={() => { setEditing(true); setMenuOpen(false); }} style={{ display: 'block', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#fff', cursor: 'pointer', textAlign: 'left', fontSize: 13 }}>✏️ Edit</button>
-                    <button onClick={() => { if (onDelete) onDelete(post.id); setMenuOpen(false); }} style={{ display: 'block', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#ff6b6b', cursor: 'pointer', textAlign: 'left', fontSize: 13 }}>🗑️ Delete</button>
+                    <form action={deleteAction}>
+                      <input type="hidden" name="postId" value={post.id} />
+                      <input type="hidden" name="redirectTo" value="/home" />
+                      <button type="submit" style={{ display: 'block', width: '100%', padding: '8px 16px', background: 'none', border: 'none', color: '#ff6b6b', cursor: 'pointer', textAlign: 'left', fontSize: 13 }}>🗑️ Delete</button>
+                    </form>
                   </div>
                 )}
               </div>

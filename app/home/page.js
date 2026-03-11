@@ -5,7 +5,7 @@ import Avatar from '../../components/Avatar';
 import UserCard from '../../components/UserCard';
 import PostCard from '../../components/PostCard';
 import { createClient } from '../../lib/supabase/server';
-import { createPostAction, searchFromPostAction } from '../posts/actions';
+import { createPostAction, deletePostAction, searchFromPostAction } from '../posts/actions';
 import {
   acceptConnectionRequestAction,
   declineConnectionRequestAction,
@@ -225,7 +225,7 @@ export default async function HomePage({ searchParams }) {
               const p = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
               return (
                 <div key={post.id} className="card">
-                  <PostCard post={post} currentUserId={user.id} />
+                  <PostCard post={post} currentUserId={user.id} deleteAction={deletePostAction} />
                 </div>
               );
             })}
