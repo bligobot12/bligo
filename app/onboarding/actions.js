@@ -18,8 +18,7 @@ export async function generateApiKeyOnboardingAction() {
   const supabase = await createClient();
   if (!supabase) redirect('/onboarding?error=' + enc('Supabase env not configured'));
 
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   const apiKey = makeApiKey();
@@ -42,8 +41,7 @@ export async function saveBotOnboardingAction(formData) {
   const supabase = await createClient();
   if (!supabase) redirect('/onboarding?error=' + enc('Supabase env not configured'));
 
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   const botName = String(formData.get('bot_name') || '').trim();
@@ -77,8 +75,7 @@ export async function completeOnboardingAction() {
   const supabase = await createClient();
   if (!supabase) redirect('/onboarding?error=' + enc('Supabase env not configured'));
 
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   // Try update first, then upsert as fallback

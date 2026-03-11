@@ -9,8 +9,7 @@ export default async function OnboardingPage({ searchParams }) {
   const supabase = await createClient();
   if (!supabase) redirect('/login?error=' + encodeURIComponent('Supabase env not configured'));
 
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user;
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
   const { data: connection } = await supabase
