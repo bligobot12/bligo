@@ -35,7 +35,24 @@ export default async function NotificationsPage() {
     .order('updated_at', { ascending: false })
     .limit(20);
 
-  const otherIds = [...new Set((acceptedRows || []).map((c) => (c.from_user_id === user.id ? c.to_user_id : c.from_user_id)))];
+  const { data: pendingRows } = await supabase
+    .from('connections')
+    .select('from_user_id, created_at')
+    .eq('to_user_id', user.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  const { count: unreadMessageCount } = await supabase
+    .from('messages')
+    .select('*', { count: 'exact', head: true })
+    .eq('to_user_id', user.id)
+    .eq('read', false);
+
+  const otherIds = [...new Set([
+    ...(acceptedRows || []).map((c) => (c.from_user_id === user.id ? c.to_user_id : c.from_user_id)),
+    ...(pendingRows || []).map((c) => c.from_user_id),
+  ])];
   const { data: names } = otherIds.length
     ? await supabase.from('profiles').select('user_id, display_name, first_name, last_name').in('user_id', otherIds)
     : { data: [] };
@@ -57,12 +74,18 @@ export default async function NotificationsPage() {
         ts: c.updated_at,
       };
     }),
-    ...(matchRows || []).slice(0, 3).map((m) => ({
-      type: 'new-user-match',
-      text: 'A new user joined who matches your interests',
-      href: '/home',
-      ts: m.created_at,
+    ...(pendingRows || []).map((c) => ({
+      type: 'request',
+      text: `${byId.get(c.from_user_id) || 'Someone'} sent you a friend request`,
+      href: '/connections',
+      ts: c.created_at,
     })),
+    ...(Number(unreadMessageCount) > 0 ? [{
+      type: 'messages',
+      text: `You have ${unreadMessageCount} unread message${Number(unreadMessageCount) === 1 ? '' : 's'}`,
+      href: '/messages',
+      ts: new Date().toISOString(),
+    }] : []),
   ].sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
 
   await supabase
