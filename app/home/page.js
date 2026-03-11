@@ -149,13 +149,13 @@ export default async function HomePage({ searchParams }) {
 
             <div style={{ borderTop: '1px solid #2a2a2a', marginTop: 12, paddingTop: 12, display: 'flex', justifyContent: 'space-around' }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontWeight: 700, fontSize: 18 }}>{connectionCount || 0}</div>
-                <div className="muted" style={{ fontSize: 11 }}>Friends</div>
+                <Link href="/connections"><strong>{connectionCount || 0}</strong> Friends</Link>
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontWeight: 700, fontSize: 18 }}>{matchCount || 0}</div>
-                <div className="muted" style={{ fontSize: 11 }}>Matches</div>
-              </div>
+              {matchCount > 0 && (
+                <div style={{ textAlign: 'center' }}>
+                  <span><strong>{matchCount}</strong> Matches</span>
+                </div>
+              )}
             </div>
 
             <div style={{ borderTop: '1px solid #2a2a2a', marginTop: 12, paddingTop: 12, fontSize: 12 }}>
