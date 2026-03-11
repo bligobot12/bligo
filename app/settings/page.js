@@ -33,6 +33,7 @@ export default async function SettingsPage({ searchParams }) {
           <a className="button" href="/skills" style={{ display: 'inline-block' }}>🧠 AI Skills Training</a>
           <a className="button" href="/skills/add" style={{ display: 'inline-block' }}>Add Skills</a>
           <a className="button" href="/forgot-password" style={{ display: 'inline-block' }}>Change password</a>
+          <a className="button" href={`/profile/${user.id}?edit=true`} style={{ display: 'inline-block' }}>Edit Profile</a>
           <a className="button" href="/onboarding" style={{ display: 'inline-block' }}>Edit profile onboarding</a>
         </div>
       </section>

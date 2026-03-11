@@ -1,9 +1,15 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function EditProfile({ profile }) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('edit=true')) {
+      setOpen(true);
+    }
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
