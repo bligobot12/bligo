@@ -11,10 +11,12 @@ export default function SkillsPage() {
   const [apiKey, setApiKey] = useState('');
   const [copied, setCopied] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
+  const [viewerUserId, setViewerUserId] = useState(null);
   const bottomRef = useRef(null);
 
   useEffect(() => {
     fetch('/api/settings/apikey').then((r) => r.json()).then((d) => setApiKey(d.apiKey || ''));
+    fetch('/api/auth/me').then((r) => r.json()).then((d) => setViewerUserId(d.userId || null)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -235,7 +237,7 @@ Start by asking about my current work.`;
       </div>
 
       <div style={{ marginTop: 16, textAlign: 'center' }}>
-        <a href="/profile/me" className="muted" style={{ fontSize: 13 }}>← Back to profile</a>
+        <a href={viewerUserId ? `/profile/${viewerUserId}` : '/profile'} className="muted" style={{ fontSize: 13 }}>← Back to profile</a>
       </div>
     </div>
   );
