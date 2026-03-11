@@ -56,8 +56,8 @@ export default function HomePage() {
             and AI surfaces high-fit matches within your direct and extended circles.
           </p>
           <div className="actions">
-            <Link className="button primary" href="/contact">Join the waitlist</Link>
-            <Link className="button" href="/home">Open app</Link>
+            <Link className="button primary" href="/signup">Sign Up</Link>
+            <Link className="button" href="/login">Log In</Link>
           </div>
         </div>
         <div className="hero-image-wrap">
