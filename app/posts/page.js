@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
-import { createPostAction } from './actions';
+import { createPostAction, deletePostAction } from './actions';
 import { searchFromPostAction } from '../search/actions';
-import { getDegreLabel } from '../../lib/ui/getDegreeLabel';
 import PostCard from '../../components/PostCard';
 
 export default async function PostsPage({ searchParams }) {
@@ -72,7 +71,7 @@ export default async function PostsPage({ searchParams }) {
         <div className="feed" style={{ marginTop: 8 }}>
           {(posts || []).map((post) => {
             const author = byUser.get(post.user_id);
-            return <PostCard key={post.id} post={post} author={`${author?.display_name || 'User'} (${getDegreLabel(1)})`} isOwner={post.user_id === user.id} />;
+            return <PostCard key={post.id} post={{ ...post, profiles: author }} currentUserId={user.id} deleteAction={deletePostAction} />;
           })}
           {(posts || []).length === 0 ? <p className="muted">No posts yet.</p> : null}
         </div>
