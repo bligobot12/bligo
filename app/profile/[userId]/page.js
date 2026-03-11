@@ -137,7 +137,8 @@ export default async function PublicProfilePage({ params }) {
 
       <section className="card">
         <h3>AI Designated Skills</h3>
-        <p className="muted" style={{ marginTop: 0 }}>Updated automatically by your connected bots based on your activity.</p>
+        {isOwn ? <a href="/skills" className="button" style={{ fontSize: 12, marginTop: 8 }}>+ Add AI Skills</a> : null}
+        <p className="muted" style={{ marginTop: 8 }}>Updated automatically by your connected bots based on your activity.</p>
         {signals.length === 0 ? <p className="muted">No AI-designated skills yet.</p> : null}
         {signals.map((s) => (
           <div key={`${s.tag}-${s.cluster || ''}`} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
