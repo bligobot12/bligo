@@ -3,7 +3,7 @@ import { sendConnectionRequestAction } from '../../connections/actions';
 import Avatar from '../../../components/Avatar';
 import Link from 'next/link';
 import EditProfile from './EditProfile';
-import { addSpecialtyAction, removeSpecialtyAction, updateProfileAction } from '../actions';
+import { addSpecialtyAction, removeSpecialtyAction } from '../actions';
 
 function asArray(v) {
   return Array.isArray(v) ? v : [];
@@ -102,7 +102,7 @@ export default async function PublicProfilePage({ params }) {
             <p className="muted" style={{ margin: '4px 0' }}>{location}</p>
             {profile.bio && <p style={{ marginTop: 8 }}>{profile.bio}</p>}
           </div>
-          {isOwn && <EditProfile profile={profile} updateAction={updateProfileAction} />}
+          {isOwn && <EditProfile profile={profile} />}
         </div>
       </section>
 
