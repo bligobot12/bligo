@@ -31,6 +31,7 @@ export default async function SettingsPage({ searchParams }) {
         <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <a className="button" href="/settings/api" style={{ display: 'inline-block' }}>API & Onboarding</a>
           <a className="button" href="/skills" style={{ display: 'inline-block' }}>🧠 AI Skills Training</a>
+          <a className="button" href="/skills/add" style={{ display: 'inline-block' }}>Add Skills</a>
           <a className="button" href="/forgot-password" style={{ display: 'inline-block' }}>Change password</a>
           <a className="button" href="/onboarding" style={{ display: 'inline-block' }}>Edit profile onboarding</a>
         </div>

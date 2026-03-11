@@ -105,6 +105,7 @@ Start by asking about my current work.`;
         <p className="muted" style={{ marginTop: 4 }}>
           Build your AI Designated Skills profile through conversation. Choose the guided chat below or take the prompt to your own bot.
         </p>
+        <a className="button primary" href="/skills/add" style={{ marginTop: 8, display: 'inline-block' }}>Add Skills with Your Bot</a>
       </div>
 
       <div style={{ marginBottom: 16 }}>
