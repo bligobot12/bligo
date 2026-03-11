@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import Avatar from './Avatar';
+import PostReplies from './PostReplies';
 
 export default function PostCard({ post, currentUserId, deleteAction, onUpdate }) {
   const [editing, setEditing] = useState(false);
@@ -10,6 +11,7 @@ export default function PostCard({ post, currentUserId, deleteAction, onUpdate }
 
   const p = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
   const isOwner = currentUserId && post.user_id === currentUserId;
+  const canManage = Boolean(isOwner && deleteAction);
 
   async function handleSave() {
     if (onUpdate) await onUpdate(post.id, content);
@@ -26,7 +28,7 @@ export default function PostCard({ post, currentUserId, deleteAction, onUpdate }
             <span className="muted" style={{ fontSize: 11, marginLeft: 'auto' }}>
               {new Date(post.created_at).toLocaleDateString()}
             </span>
-            {isOwner && (
+            {canManage && (
               <div style={{ position: 'relative' }}>
                 <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 18, padding: '0 4px' }}>⋯</button>
                 {menuOpen && (
@@ -62,6 +64,7 @@ export default function PostCard({ post, currentUserId, deleteAction, onUpdate }
           )}
         </div>
       </div>
+      <PostReplies postId={post.id} currentUserId={currentUserId} />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { sendConnectionRequestAction } from '../../connections/actions';
 import Avatar from '../../../components/Avatar';
 import Link from 'next/link';
 import EditProfile from './EditProfile';
+import PostCard from '../../../components/PostCard';
 import { addSpecialtyAction, removeSpecialtyAction } from '../actions';
 
 function asArray(v) {
@@ -57,7 +58,7 @@ export default async function PublicProfilePage({ params }) {
 
   let postsQuery = supabase
     .from('posts')
-    .select('id, content, created_at, visibility')
+    .select('id, user_id, content, created_at, visibility, profiles:user_id(display_name, avatar_url, job_title, industry)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(10);
@@ -173,16 +174,7 @@ export default async function PublicProfilePage({ params }) {
         <h3>Public posts</h3>
         {(posts || []).length === 0 ? <p className="muted">No public posts yet.</p> : null}
         {(posts || []).map((post) => (
-          <div key={post.id} className="card" style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-              <Avatar src={profile.avatar_url} name={name} size={36} />
-              <div>
-                <strong style={{ fontSize: 14 }}>{name}</strong>
-                <p className="muted" style={{ margin: 0, fontSize: 11 }}>{new Date(post.created_at).toLocaleDateString()}</p>
-              </div>
-            </div>
-            <p style={{ margin: 0 }}>{post.content}</p>
-          </div>
+          <PostCard key={post.id} post={post} currentUserId={viewer?.id} />
         ))}
       </section>
     </div>
