@@ -102,23 +102,53 @@ export async function POST(request) {
 
   const body = await request.json().catch(() => ({}));
 
-  let signals = [];
+  let incomingSignals = [];
   if (Array.isArray(body.signals) && body.signals.length > 0) {
-    signals = body.signals.map((s) => normalizeSignal(s, 'explicit')).filter(Boolean);
+    incomingSignals = body.signals.map((s) => normalizeSignal(s, 'explicit')).filter(Boolean);
   } else if (Array.isArray(body.interests)) {
-    signals = convertToSignals(body.interests, 'explicit');
+    incomingSignals = convertToSignals(body.interests, 'explicit');
+  }
+
+  const { supabase, userId } = auth;
+
+  let mergedSignals = [];
+  if (incomingSignals.length > 0) {
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('signals')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    const existingSignals = Array.isArray(existing?.signals)
+      ? existing.signals.map((s) => normalizeSignal(s, 'explicit')).filter(Boolean)
+      : [];
+
+    mergedSignals = [...existingSignals];
+    for (const newSig of incomingSignals) {
+      const idx = mergedSignals.findIndex((s) => s.tag === newSig.tag);
+      if (idx >= 0) {
+        mergedSignals[idx] = {
+          ...mergedSignals[idx],
+          ...newSig,
+          frequency: (Number(mergedSignals[idx]?.frequency) || 1) + 1,
+          last_seen: newSig.last_seen || new Date().toISOString().split('T')[0],
+        };
+      } else {
+        mergedSignals.push(newSig);
+      }
+    }
   }
 
   const goals = Array.isArray(body.goals) ? cleanArray(body.goals) : undefined;
 
   const payload = {
-    signals: signals.length > 0 ? signals : undefined,
-    interests: signals.length > 0 ? interestsFromSignals(signals) : (Array.isArray(body.interests) ? cleanArray(body.interests) : undefined),
+    signals: mergedSignals.length > 0 ? mergedSignals : undefined,
+    interests: mergedSignals.length > 0 ? interestsFromSignals(mergedSignals) : (Array.isArray(body.interests) ? cleanArray(body.interests) : undefined),
     goals,
     headline: typeof body.headline === 'string' ? body.headline.trim() : undefined,
     city: typeof body.city === 'string' ? body.city.trim() : undefined,
     onboarding_tier: Number.isFinite(Number(body.onboarding_tier)) ? Number(body.onboarding_tier) : undefined,
-    clusters: signals.length > 0 ? clustersFromSignals(signals) : undefined,
+    clusters: mergedSignals.length > 0 ? clustersFromSignals(mergedSignals) : undefined,
     updated_at: new Date().toISOString(),
   };
 
@@ -127,8 +157,6 @@ export async function POST(request) {
   if (Object.keys(payload).length === 1) {
     return NextResponse.json({ error: 'No valid profile fields provided' }, { status: 400 });
   }
-
-  const { supabase, userId } = auth;
 
   let updated = null;
   let error = null;

@@ -2,20 +2,28 @@ import { createClient } from '../../../lib/supabase/server';
 import { sendConnectionRequestAction } from '../../connections/actions';
 import Avatar from '../../../components/Avatar';
 import Link from 'next/link';
+import EditProfile from './EditProfile';
+import { addSpecialtyAction, removeSpecialtyAction, updateProfileAction } from '../actions';
+
+function asArray(v) {
+  return Array.isArray(v) ? v : [];
+}
 
 export default async function PublicProfilePage({ params }) {
   const { userId } = await params;
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   const viewer = session?.user || null;
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('user_id, display_name, first_name, last_name, headline, avatar_url, industry, job_title, location_city, location_state, city, bio, specialty, skills, interests, goals')
+    .select('user_id, display_name, first_name, last_name, headline, avatar_url, industry, job_title, location_city, location_state, city, bio, specialty, skills, interests, goals, signals')
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (!profile) return <div style={{padding:40}}><p className="muted">Profile not found.</p></div>;
+  if (!profile) return <div style={{ padding: 40 }}><p className="muted">Profile not found.</p></div>;
 
   const name = profile.display_name || [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Unknown';
   const isOwn = viewer?.id === userId;
@@ -47,13 +55,6 @@ export default async function PublicProfilePage({ params }) {
     );
   }
 
-  const chips = (items) => (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-      {(items || []).map(i => <span key={i} className="signal-chip">{i}</span>)}
-      {!(items || []).length && <p className="muted">None yet.</p>}
-    </div>
-  );
-
   const { data: posts } = await supabase
     .from('posts')
     .select('id, content, created_at')
@@ -69,6 +70,8 @@ export default async function PublicProfilePage({ params }) {
     .eq('status', 'accepted');
 
   const location = [profile.location_city || profile.city, profile.location_state].filter(Boolean).join(', ');
+  const specialties = asArray(profile.specialty);
+  const signals = asArray(profile.signals);
 
   return (
     <div className="form-col" style={{ maxWidth: 860 }}>
@@ -81,35 +84,52 @@ export default async function PublicProfilePage({ params }) {
             <p className="muted" style={{ margin: '4px 0' }}>{location}</p>
             {profile.bio && <p style={{ marginTop: 8 }}>{profile.bio}</p>}
           </div>
-          {isOwn && <Link className="button" href="/settings">Edit profile</Link>}
+          {isOwn && <span className="button" style={{ opacity: 0.85 }}>Own profile</span>}
         </div>
       </section>
 
-      {(profile.specialty || []).length > 0 && (
-        <section className="card">
-          <h3>Specialty</h3>
-          {chips(profile.specialty)}
-        </section>
-      )}
+      {isOwn ? <EditProfile profile={profile} updateAction={updateProfileAction} /> : null}
 
       <section className="card">
-        <h3>Skills</h3>
-        {chips(profile.skills)}
-        {isOwn && (
-          <form method="POST" action={`/api/v1/profile`} style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-            <input className="input" name="skill" placeholder="Add a skill..." style={{ flex: 1 }} />
+        <h3>Job</h3>
+        <p style={{ margin: 0 }}>{profile.job_title || 'No job title yet'}</p>
+        <p className="muted" style={{ marginTop: 4 }}>{profile.industry || 'No industry yet'}</p>
+
+        <h4 style={{ margin: '12px 0 8px' }}>Specialties</h4>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {specialties.map((s) => (
+            <span key={s} className="signal-chip" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              {s}
+              {isOwn ? (
+                <form action={removeSpecialtyAction}>
+                  <input type="hidden" name="specialty" value={s} />
+                  <button type="submit" style={{ border: 'none', background: 'none', color: '#888', cursor: 'pointer', padding: 0 }}>×</button>
+                </form>
+              ) : null}
+            </span>
+          ))}
+          {specialties.length === 0 ? <p className="muted">No specialties yet.</p> : null}
+        </div>
+
+        {isOwn ? (
+          <form action={addSpecialtyAction} style={{ marginTop: 10, display: 'flex', gap: 8 }}>
+            <input className="input" name="specialty" placeholder="Add specialty..." style={{ flex: 1 }} />
             <button className="button" type="submit">Add</button>
           </form>
-        )}
+        ) : null}
       </section>
 
-      {((profile.interests || []).length > 0 || (profile.goals || []).length > 0) && (
-        <section className="card">
-          <h3>Interests & goals</h3>
-          {chips(profile.interests)}
-          {chips(profile.goals)}
-        </section>
-      )}
+      <section className="card">
+        <h3>AI Designated Skills</h3>
+        <p className="muted" style={{ marginTop: 0 }}>Updated automatically by your connected bots based on your activity.</p>
+        {signals.length === 0 ? <p className="muted">No AI-designated skills yet.</p> : null}
+        {signals.map((s) => (
+          <div key={`${s.tag}-${s.cluster || ''}`} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span className="signal-chip">{s.tag}</span>
+            <span className="muted" style={{ fontSize: 12 }}>{Math.round((Number(s.confidence) || 0) * 10)}/10</span>
+          </div>
+        ))}
+      </section>
 
       <section className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Link href="/connections">{friendsCount || 0} friends</Link>
@@ -118,17 +138,16 @@ export default async function PublicProfilePage({ params }) {
         )}
       </section>
 
-      {(posts || []).length > 0 && (
-        <section className="card">
-          <h3>Posts</h3>
-          {posts.map(post => (
-            <div key={post.id} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #2a2a2a' }}>
-              <p style={{ margin: 0 }}>{post.content}</p>
-              <p className="muted" style={{ fontSize: 11, marginTop: 6 }}>{new Date(post.created_at).toLocaleDateString()}</p>
-            </div>
-          ))}
-        </section>
-      )}
+      <section className="card">
+        <h3>Public posts</h3>
+        {(posts || []).length === 0 ? <p className="muted">No public posts yet.</p> : null}
+        {(posts || []).map((post) => (
+          <div key={post.id} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #2a2a2a' }}>
+            <p style={{ margin: 0 }}>{post.content}</p>
+            <p className="muted" style={{ fontSize: 11, marginTop: 6 }}>{new Date(post.created_at).toLocaleDateString()}</p>
+          </div>
+        ))}
+      </section>
     </div>
   );
 }
