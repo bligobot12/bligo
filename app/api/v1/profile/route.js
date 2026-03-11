@@ -17,7 +17,7 @@ function normalizeSignal(sig, fallbackSource = 'explicit') {
   const confidenceNum = Number(sig.confidence);
   const confidence = Number.isFinite(confidenceNum)
     ? Math.max(0, Math.min(1, confidenceNum))
-    : (fallbackSource === 'explicit' ? 0.5 : 0.8);
+    : (fallbackSource === 'bot_training' || fallbackSource === 'guided_chat') ? 0.7 : 0.5;
 
   return {
     tag,
@@ -104,7 +104,9 @@ export async function POST(request) {
 
   let incomingSignals = [];
   if (Array.isArray(body.signals) && body.signals.length > 0) {
-    incomingSignals = body.signals.map((s) => normalizeSignal(s, 'explicit')).filter(Boolean);
+    incomingSignals = body.signals
+      .map((s) => normalizeSignal(s, String(s?.source || 'explicit')))
+      .filter(Boolean);
   } else if (Array.isArray(body.interests)) {
     incomingSignals = convertToSignals(body.interests, 'explicit');
   }
@@ -120,7 +122,7 @@ export async function POST(request) {
       .maybeSingle();
 
     const existingSignals = Array.isArray(existing?.signals)
-      ? existing.signals.map((s) => normalizeSignal(s, 'explicit')).filter(Boolean)
+      ? existing.signals.map((s) => normalizeSignal(s, String(s?.source || 'explicit'))).filter(Boolean)
       : [];
 
     mergedSignals = [...existingSignals];
