@@ -11,6 +11,17 @@ const INTENT_WEIGHTS = {
   vendor_supplier: { location: 20, skills: 35, trust: 20, posts: 15, recency: 10 },
 };
 
+function buildMatchReason(candidate, scoreBreakdown) {
+  const reasons = [];
+  if ((scoreBreakdown?.skills ?? 0) > 10) reasons.push('strong skills overlap');
+  if ((scoreBreakdown?.location ?? 0) > 10) reasons.push(`nearby in ${candidate.location_city || candidate.city || 'your area'}`);
+  if ((scoreBreakdown?.trust ?? 0) > 10) reasons.push('in your trusted network');
+  if ((scoreBreakdown?.posts ?? 0) > 10) reasons.push('active with matching interests');
+  if (candidate.reason_why_now) reasons.push(candidate.reason_why_now);
+  if (reasons.length === 0) return 'matches your profile';
+  return reasons.slice(0, 2).join(' · ');
+}
+
 export async function POST(request) {
   const supabase = await createClient();
   const {
@@ -148,6 +159,13 @@ export async function POST(request) {
         recency: recencyScore,
       },
       why,
+      match_reason: buildMatchReason(profile, {
+        skills: Math.round(skillScore),
+        posts: postScore,
+        trust: trustScore,
+        location: locationScore,
+        recency: recencyScore,
+      }),
       degree,
     });
   }
