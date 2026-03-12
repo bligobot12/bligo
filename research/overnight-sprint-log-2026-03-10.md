@@ -1,0 +1,21 @@
+# Overnight Sprint Log — 2026-03-10
+
+- [2026-03-10 22:09:35 EDT] WORKED Part 1.2 — Signal normalization already fixed earlier in commit a45938e (preserve bot_training/guided_chat confidence).
+- [2026-03-10 22:09:35 EDT] SKIPPED Part 1.1 — Cloudflare env var/redeploy is dashboard-only. Manual step: Cloudflare Dashboard → Pages → bligo → Settings → Environment Variables, add ANTHROPIC_API_KEY, then trigger redeploy.
+- [2026-03-10 22:12:08 EDT] WORKED Part 1.3 — middleware auth check switched to supabase.auth.getUser() to avoid first-login redirect race. Commit e76b633. Post-push healthcheck: bligo.ai HTTP 200.
+- [2026-03-10 22:12:23 EDT] WORKED Part 1.4 — audited friends grammar occurrences; only profile uses conditional singular/plural and is correct ('1 friend'). No code change needed.
+- [2026-03-10 22:12:23 EDT] WORKED Part 1.5 — smoke tested /messages on production (HTTP 200). No fix/revert needed.
+- [2026-03-10 22:14:55 EDT] WORKED Part 2.1 — replaced landing waitlist/open-app CTAs with Sign Up + Log In. Commit 32e7d62. Post-push healthcheck: bligo.ai HTTP 200.
+- [2026-03-10 22:17:24 EDT] WORKED Part 3.1 — updated contact page with clickable phone/email/Instagram/X/TikTok links. Commit 169513a. Post-push healthcheck: bligo.ai HTTP 200.
+- [2026-03-10 22:20:32 EDT] WORKED Part 4.1/4.2/4.3 — added top /skills add button, new /skills/add page with copyable API-key prompt instructions, and Settings Add Skills link. Commit 6eee06c. Post-push healthcheck: bligo.ai HTTP 200.
+- [2026-03-10 22:23:26 EDT] WORKED Part 6.1 — settings Edit Profile now links to /profile/[userId]?edit=true and profile editor auto-opens on query param. Commit 649b655. Post-push healthcheck: bligo.ai HTTP 200.
+- [2026-03-10 22:26:01 EDT] WORKED Part 8.3 — added /api/auth/me and fixed /skills back link to dynamic /profile/{userId}. Commit 6ab347a. Post-push healthcheck: bligo.ai HTTP 200.
+- [2026-03-10 22:28:36 EDT] WORKED Part 8.4 — /posts now uses PostCard owner controls with delete action for own posts. Commit 4dc4f33. Post-push healthcheck: bligo.ai HTTP 200.
+- [2026-03-10 22:31:38 EDT] WORKED Part 8.5 — notifications now include friend requests + unread message count summary in addition to accepted connections/matches. Commit b0d3cb0. Post-push healthcheck: bligo.ai HTTP 200.
+- [2026-03-10 22:34:34 EDT] WORKED Part 8.1 — Home left card already uses display_name or first_name + last_name fallback. No code change needed.
+- [2026-03-10 22:34:34 EDT] WORKED Part 8.2 — Nav avatar+name already links to own profile in app/layout.js. No code change needed.
+- [2026-03-10 22:34:34 EDT] WORKED Part 9 — created research/bligo-algorithm-report.md. Commit 0447673. Post-push healthcheck: bligo.ai HTTP 200.
+- [2026-03-10 22:34:34 EDT] SKIPPED Part 5.1 — Supabase SQL editor required. Manual step: run the provided SQL to create/secure post_replies table in Supabase SQL editor.
+- [2026-03-10 22:34:34 EDT] SKIPPED Part 5.2/5.3 — Depends on post_replies backend rollout plus larger UI/API wiring across multiple feeds; deferred to avoid risky multi-surface overnight change.
+- [2026-03-10 22:34:34 EDT] SKIPPED Part 7.1/7.2/7.3 — Settings API-key management exists via current settings/actions, but not yet migrated to explicit /api/keys REST routes + masked key UI per brief; deferred due sprint time.
+- [2026-03-10 22:34:34 EDT] SKIPPED Part 10 — Optional prototype not attempted due remaining high-priority backlog/time.

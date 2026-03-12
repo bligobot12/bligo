@@ -1,0 +1,22 @@
+{
+  "name": "bligo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "npx opennextjs-cloudflare build && mv .open-next/worker.js .open-next/_worker.js && cp -r .open-next/assets/* .open-next/ && echo '{\"version\":1,\"include\":[\"/*\"],\"exclude\":[\"/_next/static/*\",\"/favicon.ico\",\"/BUILD_ID\"]}' > .open-next/_routes.json",
+    "start": "next start",
+    "build:cf": "npx opennextjs-cloudflare build"
+  },
+  "dependencies": {
+    "@supabase/ssr": "0.5.2",
+    "@supabase/supabase-js": "2.56.0",
+    "next": "^15.5.10",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@opennextjs/cloudflare": "^1.17.1",
+    "wrangler": "^4.71.0"
+  }
+}
