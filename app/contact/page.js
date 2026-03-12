@@ -9,7 +9,7 @@ export default function ContactPage() {
       <section className="card">
         <h3>Get in touch</h3>
         <p>📞 Phone: <a href="tel:9144035982">914.403.5982</a></p>
-        <p>✉️ Email: <a href="mailto:info@whiteplainspm.net">info@whiteplainspm.net</a></p>
+        <p>✉️ Email: <a href="mailto:bligoainetwork@gmail.com">bligoainetwork@gmail.com</a></p>
         <p>📸 Instagram: <a href="https://instagram.com/bligo.ai" target="_blank" rel="noreferrer">bligo.ai</a></p>
         <p>𝕏 X (Twitter): <a href="https://x.com/bligo_network" target="_blank" rel="noreferrer">@bligo_network</a></p>
         <p>🎵 TikTok: <a href="https://tiktok.com/@bligo.ai" target="_blank" rel="noreferrer">bligo.ai</a></p>
