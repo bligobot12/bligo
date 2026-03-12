@@ -57,6 +57,7 @@ export async function POST(request) {
     .from('profiles')
     .upsert(
       {
+        id: user.id,
         user_id: user.id,
         onboarding_complete: true,
         updated_at: new Date().toISOString(),
