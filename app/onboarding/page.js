@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '../../lib/supabase/server';
-import { generateApiKeyOnboardingAction, saveBotOnboardingAction, completeOnboardingAction } from './actions';
+import { generateApiKeyOnboardingAction, saveBotOnboardingAction } from './actions';
 import OnboardingPrompt from '../../components/OnboardingPrompt';
+import OnboardingCompleteButton from '../../components/OnboardingCompleteButton';
 import TagInput from '../../components/TagInput';
 import { saveIntroPreferencesAction, saveProfileBasicsAction } from '../home/actions';
 
@@ -156,9 +157,7 @@ export default async function OnboardingPage({ searchParams }) {
       </details>
 
       {/* GO TO FEED — marks onboarding complete */}
-      <form action={completeOnboardingAction} style={{ marginTop: 24 }}>
-        <button className="button primary" type="submit">Go to my feed →</button>
-      </form>
+      <OnboardingCompleteButton />
     </section>
   );
 }
