@@ -284,10 +284,9 @@ export default async function HomePage({ searchParams }) {
               <div key={u.user_id} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
                 <Avatar src={u.avatar_url} name={u.display_name} size={36} />
                 <div style={{ flex: 1 }}>
-                  <Link href={`/profile/${u.user_id}`}><strong style={{ fontSize: 13 }}>{u.display_name} <span className="degree-badge">{getDegreLabel(null)}</span></strong></Link>
+                  <Link href={`/profile/${u.user_id}`}><strong style={{ fontSize: 15, fontWeight: 600 }}>{u.display_name} <span className="degree-badge">{getDegreLabel(null)}</span></strong></Link>
                   <p className="muted" style={{ margin: 0, fontSize: 11 }}>{u.city}</p>
                 </div>
-                <a className="button" href={`/messages/${u.user_id}`} style={{ fontSize: 11, padding: '3px 10px' }}>Message →</a>
                 <form action={sendConnectionRequestAction}>
                   <input type="hidden" name="to_user_id" value={u.user_id} />
                   <button className="button" type="submit" style={{ fontSize: 11, padding: '3px 10px' }}>+ Connect</button>
