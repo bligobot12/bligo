@@ -6,7 +6,7 @@ export default function OnboardingCompleteButton() {
       className="button primary"
       style={{ marginTop: 24 }}
       onClick={async () => {
-        const res = await fetch('/api/complete-onboarding', { method: 'POST' });
+        const res = await fetch('/api/complete-onboarding', { method: 'POST', credentials: 'include' });
         const text = await res.text();
         if (res.ok) {
           window.location.href = '/home';
