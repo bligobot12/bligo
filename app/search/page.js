@@ -128,19 +128,19 @@ export default function SearchPage() {
             <p className="muted">No matches found. Try broadening your search or removing the location.</p>
           )}
           {results.map((r) => (
-            <div key={r.user_id} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '16px 0', borderBottom: '1px solid #CED0D4' }}>
+            <div key={r.user_id} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '16px 0', borderBottom: '1px solid #2a2a2a' }}>
               <a href={`/profile/${r.user_id}`}>
                 <Avatar src={r.avatar_url} name={r.display_name} size={52} />
               </a>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <a href={`/profile/${r.user_id}`} style={{ fontWeight: 700, fontSize: 15, textDecoration: 'none', color: '#050505' }}>
+                  <a href={`/profile/${r.user_id}`} style={{ fontWeight: 700, fontSize: 15, textDecoration: 'none', color: '#fff' }}>
                     {r.display_name}
                   </a>
                   {r.degree && (
                     <span className="muted" style={{ fontSize: 12 }}>· {r.degree === 1 ? '1st' : '2nd'}</span>
                   )}
-                  <span style={{ marginLeft: 'auto', fontSize: 12, color: '#1877F2', fontWeight: 700 }}>
+                  <span style={{ marginLeft: 'auto', fontSize: 12, color: '#7c6af7', fontWeight: 700 }}>
                     {r.score}pts
                   </span>
                 </div>
@@ -158,11 +158,6 @@ export default function SearchPage() {
                 )}
                 {r.why && (
                   <p className="muted" style={{ fontSize: 12, margin: '4px 0' }}>✓ {r.why}</p>
-                )}
-                {r.match_reason && (
-                  <p style={{ fontSize: 12, color: '#1877F2', marginTop: 6, fontStyle: 'italic' }}>
-                    ✦ {r.match_reason}
-                  </p>
                 )}
                 <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                   <a href={`/profile/${r.user_id}`} className="button" style={{ fontSize: 12, padding: '4px 14px' }}>
