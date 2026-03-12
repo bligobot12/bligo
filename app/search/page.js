@@ -157,7 +157,9 @@ export default function SearchPage() {
                   </div>
                 )}
                 {r.why && (
-                  <p className="muted" style={{ fontSize: 12, margin: '4px 0' }}>✓ {r.why}</p>
+                  <p style={{ fontSize: 12, color: '#1877F2', marginTop: 4, fontStyle: 'italic' }}>
+                    ✦ {r.why}
+                  </p>
                 )}
                 <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                   <a href={`/profile/${r.user_id}`} className="button" style={{ fontSize: 12, padding: '4px 14px' }}>
