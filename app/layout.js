@@ -90,14 +90,6 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <script dangerouslySetInnerHTML={{ __html: `
-          window.onerror = function(msg, src, line, col, err) {
-            console.error('GLOBAL ERROR:', msg, '|', src, '|', line + ':' + col, '|', err && err.stack);
-          };
-          window.addEventListener('unhandledrejection', function(e) {
-            console.error('UNHANDLED PROMISE:', e.reason && (e.reason.stack || e.reason.message || e.reason));
-          });
-        ` }} />
         <Providers>
           <header className="site-header">
             <div className="container nav">

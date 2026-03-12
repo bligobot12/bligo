@@ -76,10 +76,8 @@ export async function completeOnboardingAction() {
   const supabase = await createClient();
   if (!supabase) redirect('/onboarding?error=' + enc('Supabase env not configured'));
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  // TEMP DEBUG — remove after
-  if (!user) redirect('/onboarding?error=' + enc('AUTH FAILED: ' + (authError?.message || 'no user returned')));
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
 
   const { error } = await supabase
     .from('profiles')
