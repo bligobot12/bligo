@@ -1,34 +1,29 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '../../../lib/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function POST() {
+  const cookieStore = await cookies();
+  const allCookies = cookieStore.getAll();
+  const cookieNames = allCookies.map((c) => c.name);
+
   const supabase = await createClient();
-  if (!supabase) return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+  if (!supabase) {
+    return NextResponse.json(
+      { error: 'Supabase not configured', cookies: cookieNames },
+      { status: 500 }
+    );
+  }
 
   const {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json(
-      { error: 'Not authenticated', detail: authError?.message },
-      { status: 401 }
-    );
-  }
-
-  const { error } = await supabase
-    .from('profiles')
-    .upsert(
-      {
-        user_id: user.id,
-        onboarding_complete: true,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id' }
-    );
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    user: user?.id || null,
+    authError: authError?.message || null,
+    cookieNames,
+    cookieCount: allCookies.length,
+  });
 }
