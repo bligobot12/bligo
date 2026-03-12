@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { createAdminClient } from '../../../lib/supabase/admin';
 
 const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://lrpytrtdbnrkcfanicbx.supabase.co';
@@ -7,7 +8,6 @@ const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_6N_Zu4yhsLPmJFlMelV34A_AB965oxj';
 
 export async function POST(request) {
-  // Read cookies directly from request headers
   const cookieHeader = request.headers.get('cookie') || '';
   const cookieMap = {};
   cookieHeader.split(';').forEach((pair) => {
@@ -15,7 +15,6 @@ export async function POST(request) {
     if (key) cookieMap[decodeURIComponent(key.trim())] = decodeURIComponent(val.join('=').trim());
   });
 
-  // Reassemble chunked Supabase auth cookies
   const baseKey = `sb-${SUPABASE_URL.split('//')[1].split('.')[0]}-auth-token`;
   if (!cookieMap[baseKey]) {
     const chunks = [];
@@ -27,15 +26,12 @@ export async function POST(request) {
     if (chunks.length > 0) cookieMap[baseKey] = chunks.join('');
   }
 
-  // Debug — remove after confirmed working
-  const cookieNames = Object.keys(cookieMap);
-
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {
         return Object.entries(cookieMap).map(([name, value]) => ({ name, value }));
       },
-      setAll() {}, // read-only in API route
+      setAll() {},
     },
   });
 
@@ -44,20 +40,20 @@ export async function POST(request) {
     error: authError,
   } = await supabase.auth.getUser();
 
-  // Debug response — remove after confirmed working
   if (!user) {
     return NextResponse.json(
-      {
-        error: 'Not authenticated',
-        detail: authError?.message,
-        cookieNames,
-        cookieCount: cookieNames.length,
-      },
+      { error: 'Not authenticated', detail: authError?.message },
       { status: 401 }
     );
   }
 
-  const { error } = await supabase
+  // Use admin client to bypass RLS for profile upsert
+  const admin = createAdminClient();
+  if (!admin) {
+    return NextResponse.json({ error: 'Admin client not configured' }, { status: 500 });
+  }
+
+  const { error } = await admin
     .from('profiles')
     .upsert(
       {
