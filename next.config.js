@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  generateBuildId: async () => 'build-' + Date.now(),
   reactStrictMode: true,
   headers: async () => [
     {
