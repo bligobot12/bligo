@@ -60,8 +60,16 @@ export default function HomePage() {
             <Link className="button" href="/login">Log In</Link>
           </div>
         </div>
-        <div className="hero-image-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Image src="/bot.png" alt="Bligo AI assistant" width={320} height={320} className="hero-image" priority style={{ borderRadius: 16, background: 'transparent', mixBlendMode: 'multiply' }} />
+        <div className="hero-image-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
+          <Image 
+            src="/bot.png" 
+            alt="Bligo AI assistant" 
+            width={320} 
+            height={320} 
+            className="hero-image" 
+            priority 
+            style={{ borderRadius: 16 }} 
+          />
         </div>
       </section>
 
