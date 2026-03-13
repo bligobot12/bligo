@@ -49,7 +49,7 @@ export default function HomePage() {
     <>
       <section className="hero hero-split">
         <div>
-          <span className="hero-kicker">AI-driven introductions</span>
+          <span className="hero-kicker" style={{ background: '#E7F3FF', color: '#1877F2', border: '1px solid #BDD7FF', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>AI-driven introductions</span>
           <h1>Real Connections, Curated by AI</h1>
           <p>
             Bligo helps you unlock new connections across your personal network. Share your intent,
@@ -60,8 +60,8 @@ export default function HomePage() {
             <Link className="button" href="/login">Log In</Link>
           </div>
         </div>
-        <div className="hero-image-wrap">
-          <Image src="/bot.png" alt="Bligo AI assistant" width={760} height={500} className="hero-image" priority />
+        <div className="hero-image-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Image src="/bot.png" alt="Bligo AI assistant" width={320} height={320} className="hero-image" priority style={{ borderRadius: 16, background: 'transparent', mixBlendMode: 'multiply' }} />
         </div>
       </section>
 
