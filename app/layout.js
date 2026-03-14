@@ -72,7 +72,7 @@ export default async function RootLayout({ children }) {
           <header className="site-header">
             <div className="container nav">
               <Link className="brand" href={user ? "/home" : "/"} aria-label="Bligo home" style={{ display: 'flex', alignItems: 'center' }}>
-                <Image src="/bot.png" alt="Bligo" width={160} height={54} style={{ objectFit: 'contain', objectPosition: 'left' }} />
+                <Image src="/bot.png" alt="Bligo" width={240} height={80} style={{ objectFit: 'contain', objectPosition: 'left' }} />
               </Link>
               <nav className="nav-links">
                 {user ? (
