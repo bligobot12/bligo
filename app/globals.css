@@ -120,6 +120,8 @@ a { color: var(--brand); text-decoration: none; }
   font-weight: 700;
   letter-spacing: 0.2px;
   color: var(--brand);
+  display: flex;
+  align-items: center;
 }
 
 .main {
