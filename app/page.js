@@ -2,24 +2,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-const steps = [
-  {
-    index: '01 · Activate',
-    title: 'Set your intent',
-    text: 'Create your profile, define your goals, and control exactly what’s visible and what stays private.',
-  },
-  {
-    index: '02 · Match',
-    title: 'Review connections',
-    text: 'AI identifies and ranks high-fit matches across your direct and extended network based on your intent.',
-  },
-  {
-    index: '03 · Introduce',
-    title: 'Connect with consent',
-    text: 'Approve the introduction, send a soft request, and converse only when the other person accepts.',
-  },
-];
-
 const useCases = [
   {
     title: 'Professional Introductions',
@@ -36,12 +18,6 @@ const useCases = [
     subtitle: 'Meet people who genuinely align.',
     text: 'Love the same restaurants and music? Bligo highlights high-overlap introductions within your extended network so you can open a thoughtful conversation.',
   },
-];
-
-const roadmap = [
-  { quarter: 'Q1', title: 'Intent Profiles', text: 'Fine-grained controls for what your AI can share publicly vs privately.' },
-  { quarter: 'Q2', title: 'Trust Layer', text: 'Mutual-consent intros with transparent reason codes for every match.' },
-  { quarter: 'Q3', title: 'Operator Feed', text: 'A live opportunity feed built from your preferences and trusted network graph.' },
 ];
 
 const comparisons = [
@@ -101,20 +77,6 @@ export default function HomePage() {
       </section>
 
       <section className="section-block">
-        <h2>How it works</h2>
-        <p className="muted">Tell AI what you’re looking for. Discover your best-fit connections.</p>
-        <div className="grid">
-          {steps.map((step) => (
-            <article className="card" key={step.index}>
-              <p className="muted" style={{ marginBottom: 8 }}>{step.index}</p>
-              <h3>{step.title}</h3>
-              <p>{step.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="section-block">
         <h2>Built for real-world connections.</h2>
         <div className="grid">
           {useCases.map((item) => (
@@ -161,18 +123,6 @@ export default function HomePage() {
         </ul>
       </section>
 
-      <section className="section-block">
-        <h2>What’s next</h2>
-        <div className="grid">
-          {roadmap.map((item) => (
-            <article className="card" key={item.quarter}>
-              <p className="muted" style={{ marginBottom: 8 }}>{item.quarter}</p>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
     </>
   );
 }
