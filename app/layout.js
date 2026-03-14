@@ -17,7 +17,6 @@ export default async function RootLayout({ children }) {
   } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
   const user = session?.user || null;
 
-  let hasUnreadNotifications = false;
   let unreadInbox = 0;
   let unreadRequests = 0;
   let navProfile = null;
@@ -25,32 +24,10 @@ export default async function RootLayout({ children }) {
   if (user && supabase) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('last_seen_notifications, display_name, first_name, last_name, avatar_url')
+      .select('display_name, first_name, last_name, avatar_url')
       .eq('user_id', user.id)
       .maybeSingle();
     navProfile = profile;
-
-    const lastSeen = profile?.last_seen_notifications ? new Date(profile.last_seen_notifications) : null;
-
-    const { data: recentMatch } = await supabase
-      .from('match_candidates')
-      .select('created_at')
-      .eq('user_a_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const { data: recentAccepted } = await supabase
-      .from('connections')
-      .select('updated_at')
-      .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
-      .eq('status', 'accepted')
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const latestTs = [recentMatch?.created_at, recentAccepted?.updated_at].filter(Boolean).sort().pop();
-    hasUnreadNotifications = latestTs ? (!lastSeen || new Date(latestTs) > lastSeen) : false;
 
     const { data: unreadRows } = await supabase
       .from('messages')
@@ -101,17 +78,14 @@ export default async function RootLayout({ children }) {
                 {user ? (
                   <>
                     <Link href="/home">Home</Link>
+                    <Link href="/groups">Groups</Link>
                     <Link href="/search">Search</Link>
-                    <Link href="/posts">Posts</Link>
-                    <Link href="/connections">Friends</Link>
+                    <Link href="/posts">Post</Link>
                     <Link href="/messages">Messages{unreadRequests > 0 ? <span className="notif-dot notif-dot-red" /> : unreadInbox > 0 ? <span className="notif-dot notif-dot-purple" /> : null}</Link>
-                    <Link href="/notifications">Notifications{hasUnreadNotifications ? <span className="notif-dot" /> : null}</Link>
-                    <Link href="/settings">Settings</Link>
                     <Link href={`/profile/${session.user.id}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <Avatar src={navProfile?.avatar_url} name={navProfile?.display_name || `${navProfile?.first_name || ''} ${navProfile?.last_name || ''}`.trim() || 'You'} size={22} />
-                      <span>{navProfile?.display_name || `${navProfile?.first_name || ''} ${navProfile?.last_name || ''}`.trim() || 'My Profile'}</span>
+                      <span>Profile</span>
                     </Link>
-                    <Link href="/logout" style={{ color: '#888' }}>Log out</Link>
                   </>
                 ) : (
                   <>
