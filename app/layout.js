@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Providers } from './providers';
 import { createClient } from '../lib/supabase/server';
-import Avatar from '../components/Avatar';
+import UserMenu from '../components/UserMenu';
 
 export const metadata = {
   title: 'Bligo',
@@ -82,11 +82,11 @@ export default async function RootLayout({ children }) {
                     <Link href="/search">Search</Link>
                     <Link href="/posts">Post</Link>
                     <Link href="/messages">Messages{unreadRequests > 0 ? <span className="notif-dot notif-dot-red" /> : unreadInbox > 0 ? <span className="notif-dot notif-dot-purple" /> : null}</Link>
-                    <Link href={`/profile/${session.user.id}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Avatar src={navProfile?.avatar_url} name={navProfile?.display_name || `${navProfile?.first_name || ''} ${navProfile?.last_name || ''}`.trim() || 'You'} size={22} />
-                      <span>Profile</span>
-                    </Link>
-                    <Link href="/logout" style={{ color: '#888', fontWeight: 600 }}>Logout</Link>
+                    <UserMenu
+                      profileHref={`/profile/${session.user.id}`}
+                      name={navProfile?.display_name || `${navProfile?.first_name || ''} ${navProfile?.last_name || ''}`.trim() || 'You'}
+                      avatarUrl={navProfile?.avatar_url}
+                    />
                   </>
                 ) : (
                   <>

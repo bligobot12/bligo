@@ -56,6 +56,59 @@ a { color: var(--brand); text-decoration: none; }
 .nav-links a:hover { color: var(--brand); }
 .nav-links a[aria-current="page"] { color: var(--brand); font-weight: 600; }
 
+.user-menu {
+  position: relative;
+  margin-left: 4px;
+}
+
+.user-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 8px 4px 4px;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.user-menu-trigger:hover {
+  border-color: #c9d9ff;
+}
+
+.user-menu-name {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 160px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  z-index: 40;
+  display: grid;
+  gap: 4px;
+}
+
+.user-menu-dropdown a {
+  display: block;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
+}
+
+.user-menu-dropdown a:hover {
+  background: #f5f8ff;
+  color: var(--brand);
+}
+
 .nav-cta {
   border: 1px solid var(--border);
   border-radius: 999px;
