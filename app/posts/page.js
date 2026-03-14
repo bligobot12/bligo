@@ -47,6 +47,7 @@ export default async function PostsPage({ searchParams }) {
     <div className="form-col" style={{ maxWidth: 900 }}>
       <section className="card">
         <h2>Post</h2>
+        <p className="muted" style={{ marginTop: 4 }}>General feed posts live here. Group-specific posts are published inside each group.</p>
         <form action={createPostAction} className="form-col" style={{ marginTop: 10 }}>
           <textarea className="input" name="content" rows={4} placeholder="What are you looking for right now?" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
