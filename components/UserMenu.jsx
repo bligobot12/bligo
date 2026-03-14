@@ -37,10 +37,11 @@ export default function UserMenu({ profileHref, settingsHref = '/settings', logo
         className="user-menu-trigger"
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label="Open profile menu"
         onClick={() => setOpen((v) => !v)}
       >
         <Avatar src={avatarUrl} name={name || 'You'} size={28} />
-        <span className="user-menu-name">{name || 'Profile'}</span>
+        <span className="user-menu-caret">▾</span>
       </button>
 
       {open ? (

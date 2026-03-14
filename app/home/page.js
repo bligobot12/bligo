@@ -180,8 +180,8 @@ export default async function HomePage({ searchParams }) {
                 <input
                   className="input"
                   name="content"
-                  placeholder="What are you looking for?"
-                  style={{ borderRadius: 20, cursor: 'pointer' }}
+                  placeholder="Post publicly or search privately for what you're looking for"
+                  style={{ borderRadius: 20 }}
                 />
                 <input type="hidden" name="post_type" value="intent" />
                 <input type="hidden" name="visibility" value="connections" />
