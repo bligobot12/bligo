@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import { resolveApiClientUser } from '../../../../lib/apiAuth';
 import { runMatchingForUser } from '../../../../lib/matching/runMatchingForUser';
 

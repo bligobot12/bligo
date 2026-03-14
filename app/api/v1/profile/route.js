@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
 import { resolveApiClientUser } from '../../../../lib/apiAuth';
 
 function unauthorized(message) {
