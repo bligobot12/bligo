@@ -1,6 +1,5 @@
 import './globals.css';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Providers } from './providers';
 import { createClient } from '../lib/supabase/server';
 import UserMenu from '../components/UserMenu';
@@ -71,8 +70,8 @@ export default async function RootLayout({ children }) {
         <Providers>
           <header className="site-header">
             <div className="container nav">
-              <Link className="brand" href={user ? "/home" : "/"} aria-label="Bligo home">
-                <Image src="/bot.png" alt="Bligo" width={120} height={50} style={{ objectFit: 'contain', height: '44px', width: 'auto' }} />
+              <Link className="brand" href={user ? "/home" : "/"} aria-label="Bligo home" style={{ display: 'flex', alignItems: 'center' }}>
+                <img src="/bot.png" alt="Bligo" style={{ height: '42px', width: 'auto' }} />
               </Link>
               <nav className="nav-links">
                 {user ? (
