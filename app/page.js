@@ -113,6 +113,19 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="section-block">
+        <h2>Connections even when you&apos;re not searching</h2>
+        <p>
+          Bligo continuously looks for opportunities to connect people based on what they&apos;re exploring, planning, or searching for.
+        </p>
+        <article className="card" style={{ marginTop: 14, borderColor: '#BDD7FF', background: '#F5FAFF' }}>
+          <p style={{ margin: 0, fontWeight: 600, color: '#0F3E7A' }}>
+            3 people in your extended network are planning a ski trip this weekend.
+          </p>
+          <p style={{ margin: '10px 0 0', fontWeight: 700, color: '#1877F2' }}>Want an introduction?</p>
+        </article>
+      </section>
+
       <section className="section-block card">
         <h2>You stay in control.</h2>
         <ul className="bullets">
