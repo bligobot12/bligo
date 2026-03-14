@@ -92,6 +92,13 @@ export async function joinPublicGroupAction(formData) {
 
   if (error) redirect(next + '?error=' + enc(error.message));
 
+  await supabase
+    .from('group_join_requests')
+    .update({ status: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: user.id })
+    .eq('group_id', groupId)
+    .eq('user_id', user.id)
+    .eq('status', 'pending');
+
   redirect(next + (next.includes('?') ? '&' : '?') + 'joined=1');
 }
 
@@ -104,6 +111,15 @@ export async function requestGroupJoinAction(formData) {
   const groupId = String(formData.get('group_id') || '').trim();
   const next = String(formData.get('next') || '').trim() || '/groups';
   if (!groupId) redirect(next + '?error=' + enc('Missing group id'));
+
+  const { data: group } = await supabase
+    .from('groups')
+    .select('id, privacy')
+    .eq('id', groupId)
+    .maybeSingle();
+
+  if (!group) redirect(next + '?error=' + enc('Group not found'));
+  if (group.privacy !== 'private') redirect(next + '?error=' + enc('This group is public. Join directly.'));
 
   const { data: existingMember } = await supabase
     .from('group_members')
