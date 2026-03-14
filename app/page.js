@@ -44,6 +44,33 @@ const roadmap = [
   { quarter: 'Q3', title: 'Operator Feed', text: 'A live opportunity feed built from your preferences and trusted network graph.' },
 ];
 
+const comparisons = [
+  {
+    label: 'Facebook',
+    points: [
+      'Built for social posts',
+      'Shows profiles',
+      'Hard to find the right person',
+    ],
+  },
+  {
+    label: 'Indeed',
+    points: [
+      'Built for job listings',
+      'Shows listings and resumes',
+      'Limited to hiring',
+    ],
+  },
+  {
+    label: 'Bligo',
+    points: [
+      'Built for real-world connections',
+      'Understands what you’re looking for',
+      'Finds trusted matches across your network',
+    ],
+  },
+];
+
 export default function HomePage() {
   return (
     <>
@@ -97,6 +124,30 @@ export default function HomePage() {
               <p>{item.text}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="section-block">
+        <h2>Why Bligo Works Better</h2>
+        <p className="muted">Not another feed. Not another job board. A smarter way to connect through trusted people.</p>
+        <div className="grid">
+          {comparisons.map((item) => (
+            <article className="card" key={item.label}>
+              <h3>{item.label}</h3>
+              <ul className="bullets" style={{ marginTop: 10 }}>
+                {item.points.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+        <div className="card" style={{ marginTop: 16, borderColor: '#BDD7FF', background: '#F5FAFF' }}>
+          <p style={{ margin: 0, fontWeight: 700, color: '#0F3E7A' }}>
+            Facebook shows profiles.<br />
+            Indeed shows listings.<br />
+            Bligo understands what you&apos;re looking for.
+          </p>
         </div>
       </section>
 
