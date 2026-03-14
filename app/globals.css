@@ -393,3 +393,39 @@ a { color: var(--brand); text-decoration: none; }
 @media (min-width: 761px) {
   .desktop-only { display: inline; }
 }
+
+@media (max-width: 768px) {
+ .site-header .nav {
+ flex-wrap: nowrap;
+ justify-content: space-between;
+ align-items: center;
+ }
+
+ .hero-split {
+ grid-template-columns: 1fr;
+ }
+
+ .hero-image-wrap {
+ display: none;
+ }
+
+ .actions {
+ display: flex;
+ flex-direction: column;
+ gap: 10px;
+ }
+
+ .actions a {
+ text-align: center;
+ width: 100%;
+ }
+
+ .grid {
+ grid-template-columns: 1fr;
+ }
+
+ .brand img {
+ height: 36px !important;
+ width: auto !important;
+ }
+}
