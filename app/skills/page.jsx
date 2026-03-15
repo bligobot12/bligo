@@ -193,8 +193,11 @@ Start by asking about my current work.`;
         </div>
       </div>
 
-      <div style={{ marginTop: 16, textAlign: 'center' }}>
-        <a href={viewerUserId ? `/profile/${viewerUserId}` : '/profile'} className="muted" style={{ fontSize: 13 }}>← Back to profile</a>
+      <div style={{ marginTop: 16, textAlign: 'center', display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <a href="/skills/edit" className="button" style={{ display: 'inline-block' }}>
+          ✏️ Edit existing skills
+        </a>
+        <a href={viewerUserId ? `/profile/${viewerUserId}` : '/profile'} className="muted" style={{ fontSize: 13, alignSelf: 'center' }}>← Back to profile</a>
       </div>
     </div>
   );
