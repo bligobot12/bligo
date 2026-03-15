@@ -78,10 +78,11 @@ export default async function RootLayout({ children }) {
                 {user ? (
                   <>
                     <Link href="/home">Home</Link>
-                    <Link href="/groups">Groups</Link>
                     <Link href="/search">Search</Link>
                     <Link href="/posts">Post</Link>
                     <Link href="/messages">Messages{unreadRequests > 0 ? <span className="notif-dot notif-dot-red" /> : unreadInbox > 0 ? <span className="notif-dot notif-dot-purple" /> : null}</Link>
+                    <Link href="/groups">Groups</Link>
+                    <Link href="/matches">Matches</Link>
                     <UserMenu
                       profileHref={`/profile/${session.user.id}`}
                       name={navProfile?.display_name || `${navProfile?.first_name || ''} ${navProfile?.last_name || ''}`.trim() || 'You'}

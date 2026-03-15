@@ -57,6 +57,7 @@ export async function middleware(request) {
     '/profile',
     '/search',
     '/posts',
+    '/matches',
     '/history',
     '/notifications',
   ].some((prefix) => request.nextUrl.pathname.startsWith(prefix));
@@ -78,6 +79,7 @@ export const config = {
     '/profile/:path*',
     '/search/:path*',
     '/posts/:path*',
+    '/matches/:path*',
     '/history/:path*',
     '/notifications/:path*',
   ],
