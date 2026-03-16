@@ -71,7 +71,7 @@ export default function PostReplies({ postId, currentUserId }) {
   }
 
   return (
-    <div style={{ marginTop: 10, borderTop: '1px solid #232335', paddingTop: 8 }}>
+    <div style={{ marginTop: 10, borderTop: '1px solid #CED0D4', paddingTop: 8 }}>
       <button
         className="button"
         type="button"

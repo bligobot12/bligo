@@ -161,7 +161,7 @@ export default function Chat({ currentUserId, friend, initialMessages, supabaseU
                 )}
                 <div style={{
                   maxWidth: '70%',
-                  background: isMe ? '#6c63ff' : '#1e1e2e',
+                  background: isMe ? '#1877F2' : '#F0F2F5',
                   color: '#fff',
                   borderRadius: isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                   padding: '10px 14px',

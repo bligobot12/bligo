@@ -142,9 +142,9 @@ export default async function PublicProfilePage({ params }) {
         <p className="muted" style={{ marginTop: 8 }}>Updated automatically by your connected bots based on your activity.</p>
         {signals.length === 0 ? <p className="muted">No AI-designated skills yet.</p> : null}
         {signals.map((s) => (
-          <div key={s.tag} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #1a1a2e' }}>
+          <div key={s.tag} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #CED0D4' }}>
             <span className="signal-chip">{s.tag}</span>
-            <span style={{ fontSize: 12, color: '#7c6af7', fontWeight: 700 }}>
+            <span style={{ fontSize: 12, color: '#1877F2', fontWeight: 700 }}>
               {Math.round((Number(s.confidence) || 0.5) * 10)}/10
             </span>
           </div>

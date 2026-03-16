@@ -13,7 +13,7 @@ export default function Avatar({ src, name, size = 40, style = {} }) {
           height: size,
           borderRadius: '999px',
           objectFit: 'cover',
-          background: '#1a1a2a',
+          background: '#E4E6EB',
           ...style,
         }}
       />
@@ -30,7 +30,7 @@ export default function Avatar({ src, name, size = 40, style = {} }) {
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#22263d',
+        background: '#E4E6EB',
         color: '#d7ddff',
         fontWeight: 700,
         fontSize: Math.max(12, Math.floor(size * 0.4)),

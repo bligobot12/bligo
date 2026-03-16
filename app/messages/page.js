@@ -71,7 +71,7 @@ export default async function MessagesPage({ searchParams }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <strong>{partner.display_name || `${partner.first_name || ""} ${partner.last_name || ""}`.trim()}</strong>
               {conv.unread > 0 && (
-                <span style={{ background: '#6c63ff', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 11 }}>
+                <span style={{ background: '#1877F2', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 11 }}>
                   {conv.unread}
                 </span>
               )}
@@ -92,17 +92,17 @@ export default async function MessagesPage({ searchParams }) {
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
       <h2 style={{ marginBottom: 16 }}>Messages</h2>
 
-      <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid #2a2a2a', paddingBottom: 0 }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid #CED0D4', paddingBottom: 0 }}>
         <a
           href="/messages"
           style={{
             padding: '8px 20px', textDecoration: 'none', fontWeight: 600, fontSize: 14,
-            borderBottom: activeTab === 'inbox' ? '2px solid #6c63ff' : '2px solid transparent',
+            borderBottom: activeTab === 'inbox' ? '2px solid #1877F2' : '2px solid transparent',
             color: activeTab === 'inbox' ? '#fff' : '#888',
           }}
         >
           Inbox {inboxUnread > 0 && (
-            <span style={{ background: '#6c63ff', borderRadius: 10, padding: '1px 6px', fontSize: 11, marginLeft: 4 }}>
+            <span style={{ background: '#1877F2', borderRadius: 10, padding: '1px 6px', fontSize: 11, marginLeft: 4 }}>
               {inboxUnread}
             </span>
           )}
@@ -111,7 +111,7 @@ export default async function MessagesPage({ searchParams }) {
           href="/messages?tab=requests"
           style={{
             padding: '8px 20px', textDecoration: 'none', fontWeight: 600, fontSize: 14,
-            borderBottom: activeTab === 'requests' ? '2px solid #6c63ff' : '2px solid transparent',
+            borderBottom: activeTab === 'requests' ? '2px solid #1877F2' : '2px solid transparent',
             color: activeTab === 'requests' ? '#fff' : '#888',
           }}
         >

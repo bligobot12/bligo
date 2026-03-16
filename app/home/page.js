@@ -140,7 +140,7 @@ export default async function HomePage({ searchParams }) {
       <div className="home-grid">
         <aside style={{ position: 'sticky', top: 20 }}>
           <div className="card" style={{ textAlign: 'center', paddingBottom: 16 }}>
-            <div style={{ height: 60, background: 'linear-gradient(135deg, #1a1a3a, #2a2a5a)', borderRadius: '8px 8px 0 0', margin: '-16px -16px 0' }} />
+            <div style={{ height: 60, background: '#F0F2F5', borderRadius: '8px 8px 0 0', margin: '-16px -16px 0' }} />
 
             <Avatar src={safeProfile.avatar_url} name={safeProfile.display_name || `${safeProfile.first_name || ""} ${safeProfile.last_name || ""}`.trim() || "You"} size={72} style={{ marginTop: -36, border: '3px solid #111' }} />
 
@@ -150,7 +150,7 @@ export default async function HomePage({ searchParams }) {
             <p className="muted" style={{ margin: 0, fontSize: 13 }}>{safeProfile.headline || 'Add a headline'}</p>
             <p className="muted" style={{ margin: '2px 0 0', fontSize: 12 }}>{safeProfile.city || 'City not set'}</p>
 
-            <div style={{ borderTop: '1px solid #2a2a2a', marginTop: 12, paddingTop: 12, display: 'flex', justifyContent: 'space-around' }}>
+            <div style={{ borderTop: '1px solid #CED0D4', marginTop: 12, paddingTop: 12, display: 'flex', justifyContent: 'space-around' }}>
               <div style={{ textAlign: 'center' }}>
                 <Link href="/connections"><strong>{connectionCount || 0}</strong> Friends</Link>
               </div>
@@ -161,13 +161,13 @@ export default async function HomePage({ searchParams }) {
               )}
             </div>
 
-            <div style={{ borderTop: '1px solid #2a2a2a', marginTop: 12, paddingTop: 12, fontSize: 12 }}>
+            <div style={{ borderTop: '1px solid #CED0D4', marginTop: 12, paddingTop: 12, fontSize: 12 }}>
               {botConnection?.status === 'connected'
                 ? <span>🟢 Bot connected</span>
                 : <span style={{ color: '#888' }}>⚪ No bot connected</span>}
             </div>
 
-            <div style={{ borderTop: '1px solid #2a2a2a', marginTop: 12, paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ borderTop: '1px solid #CED0D4', marginTop: 12, paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <a href="/onboarding" className="muted" style={{ fontSize: 13 }}>✏️ Edit profile</a>
               <a href="/settings" className="muted" style={{ fontSize: 13 }}>⚙️ Settings</a>
               <a href="/connections" className="muted" style={{ fontSize: 13 }}>👥 My friends</a>
@@ -243,7 +243,7 @@ export default async function HomePage({ searchParams }) {
             ) : (filteredMatches || []).map((match) => {
               const matched = matchedById.get(match.user_b_id);
               return (
-                <div key={match.id} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #2a2a2a' }}>
+                <div key={match.id} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #CED0D4' }}>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                     <Avatar src={matched?.avatar_url} name={matched?.display_name} size={40} />
                     <div style={{ flex: 1 }}>

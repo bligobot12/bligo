@@ -48,7 +48,7 @@ export default async function OnboardingPage({ searchParams }) {
       {saved ? <p style={{ color: '#8fd19e' }}>Saved!</p> : null}
       {error ? <p style={{ color: '#ff9da3' }}>{error}</p> : null}
 
-      <div className="post-item" style={{ marginTop: 12, borderColor: '#4b5f9c', background: '#101a3b' }}>
+      <div className="post-item" style={{ marginTop: 12, borderColor: '#BDD7FF', background: '#E7F3FF' }}>
         <p style={{ margin: 0 }}>
           💡 <strong>Tip:</strong> Bligo works best when connected to a personal AI agent that knows your full history.
           Users with personal agents get significantly better matches because profiles are built from real behavior,
@@ -58,7 +58,7 @@ export default async function OnboardingPage({ searchParams }) {
       </div>
 
       {/* STEP 1 — API Key */}
-      <div className="form-col" style={{ marginTop: 16, borderBottom: '1px solid #2a2a2a', paddingBottom: 24 }}>
+      <div className="form-col" style={{ marginTop: 16, borderBottom: '1px solid #CED0D4', paddingBottom: 24 }}>
         <h3 style={{ marginBottom: 4 }}>Step 1 — Get your API key</h3>
         <p className="muted" style={{ marginTop: 0 }}>
           Your API key connects your AI agent (ChatGPT, Claude, Gemini, OpenClaw) to your Bligo profile.
@@ -76,7 +76,7 @@ export default async function OnboardingPage({ searchParams }) {
       </div>
 
       {/* STEP 2 — Onboarding Prompt */}
-      <div className="form-col" style={{ marginTop: 24, borderBottom: '1px solid #2a2a2a', paddingBottom: 24 }}>
+      <div className="form-col" style={{ marginTop: 24, borderBottom: '1px solid #CED0D4', paddingBottom: 24 }}>
         <h3 style={{ marginBottom: 4 }}>Step 2 — Onboard with your AI</h3>
         <p className="muted" style={{ marginTop: 0 }}>
           Copy this prompt and paste it into your AI agent. It will ask you a few questions and build your Bligo profile automatically.
@@ -89,7 +89,7 @@ export default async function OnboardingPage({ searchParams }) {
       </div>
 
       {/* STEP 3 — Bot Settings */}
-      <div className="form-col" style={{ marginTop: 24, borderBottom: '1px solid #2a2a2a', paddingBottom: 24 }}>
+      <div className="form-col" style={{ marginTop: 24, borderBottom: '1px solid #CED0D4', paddingBottom: 24 }}>
         <h3 style={{ marginBottom: 4 }}>Step 3 — Name your bot</h3>
         <p className="muted" style={{ marginTop: 0 }}>Tell us which AI agent you are using.</p>
         <form className="form-col" action={saveBotOnboardingAction}>

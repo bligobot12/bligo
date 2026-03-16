@@ -125,9 +125,9 @@ export default function OnboardingPrompt({ apiKey }) {
         style={{
           width: '100%',
           minHeight: 260,
-          background: '#1a1a1a',
+          background: '#F0F2F5',
           color: '#ccc',
-          border: '1px solid #2a2a2a',
+          border: '1px solid #CED0D4',
           borderRadius: 8,
           padding: 12,
           fontSize: 13,
