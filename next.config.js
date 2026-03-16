@@ -2,6 +2,11 @@
 const nextConfig = {
   generateBuildId: async () => 'build-' + Date.now(),
   reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: '**' },
+    ],
+  },
   headers: async () => [
     {
       source: '/_next/static/:path*',
