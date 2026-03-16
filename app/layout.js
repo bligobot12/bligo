@@ -95,6 +95,7 @@ export default async function RootLayout({ children }) {
                     <Link href="/">Home</Link>
                     <Link className="desktop-only" href="/about">About</Link>
                     <Link className="desktop-only" href="/contact">Contact</Link>
+                    <Link className="desktop-only" href="/docs">Docs</Link>
                     <Link href="/login">Login</Link>
                   </>
                 )}
