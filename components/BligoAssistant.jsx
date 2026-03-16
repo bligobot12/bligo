@@ -197,7 +197,7 @@ export default function BligoAssistant() {
           transition: 'transform 0.2s',
         }}
       >
-        <img src="/bot.png" alt="Bligo Assistant" style={{ height: 32, width: 'auto' }} />
+        <img src="/bot-icon.png" alt="Bligo Assistant" style={{ height: 32, width: 'auto' }} />
       </button>
     </div>
   );
