@@ -28,6 +28,7 @@ export async function createGroupAction(formData) {
   const privacy = String(formData.get('privacy') || '').trim();
   const location = String(formData.get('location') || '').trim();
   const category = String(formData.get('category') || '').trim();
+  const avatar_url = String(formData.get('avatar_url') || '').trim();
 
   if (!name) redirect('/groups/new?error=' + enc('Group name is required.'));
   if (!description) redirect('/groups/new?error=' + enc('Description is required.'));

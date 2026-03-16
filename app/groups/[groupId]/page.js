@@ -28,7 +28,7 @@ export default async function GroupDetailPage({ params, searchParams }) {
   const [{ data: group, error: groupErr }, profileRes] = await Promise.all([
     supabase
       .from('groups')
-      .select('id, name, description, privacy, creator_id, location, category, created_at')
+      .select('id, name, description, privacy, creator_id, location, category, avatar_url, created_at')
       .eq('id', groupId)
       .maybeSingle(),
     supabase
@@ -98,10 +98,33 @@ export default async function GroupDetailPage({ params, searchParams }) {
   return (
     <div className="form-col" style={{ maxWidth: 980 }}>
       <section className="card">
-        <p className="muted" style={{ marginBottom: 8 }}>
-          {group.privacy === 'private' ? 'Private Group' : 'Public Group'} · {memberCount} members
-        </p>
-        <h2 style={{ marginBottom: 8 }}>{group.name}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 16,
+              background: '#E7F3FF',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '2px solid #CED0D4',
+            }}
+          >
+            {group.avatar_url ? (
+              <img src={group.avatar_url} alt={group.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <span style={{ fontSize: 28 }}>👥</span>
+            )}
+          </div>
+          <div>
+            <h1 style={{ margin: 0 }}>{group.name}</h1>
+            <span style={{ fontSize: 13, color: '#65676B' }}>
+              {group.privacy === 'public' ? '🌐 Public' : '🔒 Private'} · {memberCount} members
+            </span>
+          </div>
+        </div>
         <p style={{ marginTop: 0 }}>{group.description}</p>
         <p className="muted" style={{ marginTop: 10 }}>
           Created by {fullName(creator)}
@@ -254,6 +277,10 @@ export default async function GroupDetailPage({ params, searchParams }) {
               <label>
                 Category (optional)
                 <input className="input" name="category" defaultValue={group.category || ''} />
+              </label>
+              <label>
+                Group Image URL (optional)
+                <input className="input" name="avatar_url" defaultValue={group.avatar_url || ''} placeholder="https://..." />
               </label>
               <button className="button primary" type="submit">Save Group Settings</button>
             </form>

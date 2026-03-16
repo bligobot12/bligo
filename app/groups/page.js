@@ -34,7 +34,7 @@ export default async function GroupsPage({ searchParams }) {
 
   let groupsQuery = supabase
     .from('groups')
-    .select('id, name, description, privacy, creator_id, location, category, created_at')
+    .select('id, name, description, privacy, creator_id, location, category, avatar_url, created_at')
     .order('created_at', { ascending: false })
     .limit(100);
 
@@ -143,10 +143,35 @@ export default async function GroupsPage({ searchParams }) {
 
           return (
             <article className="card" key={group.id}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background: '#E7F3FF',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid #CED0D4',
+                    flexShrink: 0,
+                  }}
+                >
+                  {group.avatar_url ? (
+                    <img src={group.avatar_url} alt={group.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: 20 }}>👥</span>
+                  )}
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 15 }}>{group.name}</h3>
+                  <span style={{ fontSize: 12, color: '#65676B' }}>{group.privacy === 'public' ? '🌐 Public' : '🔒 Private'}</span>
+                </div>
+              </div>
               <p className="muted" style={{ marginBottom: 6 }}>
                 {group.privacy === 'private' ? 'Private' : 'Public'} · {count} members
               </p>
-              <h3 style={{ marginTop: 0 }}>{group.name}</h3>
               <p style={{ marginTop: 8 }}>{group.description}</p>
               <p className="muted" style={{ marginTop: 8 }}>
                 Admin: {creatorById.get(group.creator_id) || 'Unknown'}

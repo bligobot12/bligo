@@ -58,6 +58,13 @@ export default async function NewGroupPage({ searchParams }) {
             <input className="input" name="category" placeholder="e.g., Real Estate, Parents, Startups" />
           </label>
 
+          <label className="muted">Group Image URL (optional)</label>
+          <input
+            className="input"
+            name="avatar_url"
+            placeholder="https://... or leave blank for default"
+          />
+
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="button primary" type="submit">Create Group</button>
             <Link className="button" href="/groups">Cancel</Link>
