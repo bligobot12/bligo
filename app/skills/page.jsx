@@ -127,7 +127,8 @@ Start by asking about my current work.`;
               <div key={i} style={{
                 alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
                 maxWidth: '85%',
-                background: m.role === 'user' ? '#7c6af7' : '#1e1e2e',
+                background: m.role === 'user' ? '#1877F2' : '#F0F2F5',
+                color: m.role === 'user' ? '#ffffff' : '#050505',
                 borderRadius: 12,
                 padding: '10px 14px',
                 fontSize: 14,
