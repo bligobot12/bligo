@@ -178,7 +178,7 @@ Start by asking about my current work.`;
           <p className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
             Copy this prompt into OpenClaw, ChatGPT, or any AI assistant. Your bot will ask you questions and automatically push your skills to Bligo.
           </p>
-          <div style={{ flex: 1, background: '#0d0d1a', borderRadius: 8, padding: 14, overflowY: 'auto', fontSize: 12, fontFamily: 'monospace', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+          <div style={{ flex: 1, background: '#F0F2F5', borderRadius: 8, padding: 14, overflowY: 'auto', fontSize: 12, fontFamily: 'monospace', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#050505', border: '1px solid #CED0D4' }}>
             {botPrompt}
           </div>
           <button
