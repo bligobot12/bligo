@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { Providers } from './providers';
 import { createClient } from '../lib/supabase/server';
 import UserMenu from '../components/UserMenu';
+import BligoAssistant from '../components/BligoAssistant';
 
 export const metadata = {
   title: 'Bligo',
@@ -71,7 +72,7 @@ export default async function RootLayout({ children }) {
         <Providers>
           <header className="site-header">
             <div className="container nav">
-              <Link className="brand" href={user ? "/home" : "/"} aria-label="Bligo home" style={{ display: 'flex', alignItems: 'center' }}>
+              <Link className="brand" href={user ? '/home' : '/'} aria-label="Bligo home" style={{ display: 'flex', alignItems: 'center' }}>
                 <Image src="/bot.png" alt="Bligo" width={240} height={80} style={{ objectFit: 'contain', objectPosition: 'left' }} />
               </Link>
               <nav className="nav-links">
@@ -108,6 +109,7 @@ export default async function RootLayout({ children }) {
           <footer className="site-footer">
             <div className="container">© {new Date().getFullYear()} bligo. Built on Next.js + Cloudflare Pages.</div>
           </footer>
+          {user ? <BligoAssistant /> : null}
         </Providers>
       </body>
     </html>
