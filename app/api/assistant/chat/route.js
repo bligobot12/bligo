@@ -87,7 +87,9 @@ export async function POST(request) {
   const { messages } = await request.json().catch(() => ({}));
   if (!messages?.length) return NextResponse.json({ error: 'Messages required' }, { status: 400 });
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const cfContext = globalThis[Symbol.for('__cloudflare-context__')];
+  const apiKey = process.env.ANTHROPIC_API_KEY
+    || cfContext?.env?.ANTHROPIC_API_KEY;
   if (!apiKey) return NextResponse.json({ error: 'Assistant not configured' }, { status: 500 });
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
