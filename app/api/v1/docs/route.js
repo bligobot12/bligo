@@ -1,0 +1,157 @@
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  const docs = {
+    name: 'Bligo API',
+    version: '1.0',
+    base_url: 'https://bligo.ai/api/v1',
+    description: 'Bligo is an AI-powered connections platform. Use this API to read and update user profiles, trigger matching, create posts, and run searches on behalf of a user.',
+    authentication: {
+      type: 'API Key',
+      header: 'x-api-key',
+      description: 'All endpoints require an API key passed in the x-api-key header. Users generate their key at https://bligo.ai/settings/api',
+    },
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/api/v1/profile',
+        description: "Read the current user's full profile including signals, skills, goals, interests, and connection info.",
+        headers: { 'x-api-key': 'required' },
+        response: {
+          user_id: 'uuid',
+          display_name: 'string',
+          first_name: 'string',
+          last_name: 'string',
+          headline: 'string',
+          job_title: 'string',
+          industry: 'string',
+          location_city: 'string',
+          location_state: 'string',
+          bio: 'string',
+          skills: 'array of strings',
+          interests: 'array of strings',
+          goals: 'array of strings',
+          specialty: 'array of strings',
+          signals: 'array of signal objects',
+          onboarding_complete: 'boolean',
+        },
+      },
+      {
+        method: 'POST',
+        path: '/api/v1/profile',
+        description: "Update the user's profile. Signals are merged not overwritten — existing signals are preserved and new ones are added or updated by tag.",
+        headers: { 'x-api-key': 'required', 'Content-Type': 'application/json' },
+        body: {
+          display_name: 'string (optional)',
+          first_name: 'string (optional)',
+          last_name: 'string (optional)',
+          headline: 'string (optional)',
+          job_title: 'string (optional)',
+          industry: 'string (optional)',
+          location_city: 'string (optional)',
+          location_state: 'string (optional)',
+          bio: 'string (optional)',
+          skills: 'array of strings (optional)',
+          interests: 'array of strings (optional)',
+          goals: 'array of strings (optional)',
+          specialty: 'array of strings (optional)',
+          signals: 'array of signal objects (optional)',
+        },
+        signal_schema: {
+          tag: 'string — the skill, interest, or topic',
+          confidence: 'number 0.1 to 1.0 — how strongly this applies',
+          source: "string — use 'bot_training' for bot-pushed signals",
+          cluster: 'one of: professional, interests, goals, hobbies, location',
+          last_seen: 'ISO timestamp (optional, defaults to now)',
+        },
+        example_body: {
+          job_title: 'Property Manager',
+          industry: 'Real Estate',
+          specialty: ['Licensed Realtor', 'CPM'],
+          goals: ['find contractors', 'meet investors'],
+          interests: ['skiing', 'real estate investing'],
+          signals: [
+            { tag: 'property management', confidence: 0.95, source: 'bot_training', cluster: 'professional' },
+            { tag: 'real estate', confidence: 0.9, source: 'bot_training', cluster: 'professional' },
+            { tag: 'skiing', confidence: 0.8, source: 'bot_training', cluster: 'hobbies' },
+          ],
+        },
+      },
+      {
+        method: 'POST',
+        path: '/api/v1/match',
+        description: 'Trigger the matching engine to find new match candidates for the user. Returns the top matches found.',
+        headers: { 'x-api-key': 'required' },
+        body: {},
+        response: {
+          matches: 'array of match candidate objects',
+          total: 'number',
+        },
+      },
+      {
+        method: 'POST',
+        path: '/api/v1/posts',
+        description: 'Create a post on behalf of the user.',
+        headers: { 'x-api-key': 'required', 'Content-Type': 'application/json' },
+        body: {
+          content: 'string — required, the post text',
+          post_type: 'one of: update, intent, question — defaults to update',
+          visibility: 'one of: public, connections — defaults to public',
+        },
+      },
+      {
+        method: 'GET',
+        path: '/api/v1/searches',
+        description: "Get the user's recent search history.",
+        headers: { 'x-api-key': 'required' },
+        response: {
+          searches: 'array of search objects with query, results, structured_intent, created_at',
+        },
+      },
+      {
+        method: 'POST',
+        path: '/api/v1/search',
+        description: 'Run a search on behalf of the user and return ranked results.',
+        headers: { 'x-api-key': 'required', 'Content-Type': 'application/json' },
+        body: {
+          query: 'string — natural language search query',
+          intent_type: 'one of: trade_service, investment, advisory, partnership, virtual_service, vendor_supplier',
+          intent_tags: 'array of strings — specific tags to match against',
+          location: 'string — city or state to filter by',
+          max_results: 'number — max results to return, default 20',
+        },
+        response: {
+          results: 'array of ranked user objects with score, score_breakdown, and why field',
+          total: 'number',
+        },
+      },
+    ],
+    signal_clusters: [
+      'professional — job skills, industry expertise, certifications',
+      'interests — personal interests and hobbies',
+      'goals — what the user wants to achieve or find on Bligo',
+      'hobbies — recreational activities',
+      'location — geographic context',
+    ],
+    intent_types: [
+      'trade_service — finding local service providers or contractors',
+      'investment — finding investors or investment opportunities',
+      'advisory — finding advisors or mentors',
+      'partnership — finding business partners or collaborators',
+      'virtual_service — finding remote service providers',
+      'vendor_supplier — finding vendors or suppliers',
+    ],
+    quick_start: [
+      '1. Get your API key from https://bligo.ai/settings/api',
+      '2. GET /api/v1/profile to read the current profile',
+      '3. Interview the user about their skills, profession, interests, and goals',
+      '4. POST /api/v1/profile with signals array and profile fields',
+      '5. POST /api/v1/match to trigger matching',
+      '6. GET /api/v1/searches to see what the user has been searching for',
+    ],
+  };
+
+  return NextResponse.json(docs, {
+    headers: { 'Cache-Control': 'public, max-age=3600' },
+  });
+}
