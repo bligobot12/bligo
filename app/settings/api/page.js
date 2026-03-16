@@ -11,7 +11,11 @@ export default async function ApiSettingsPage({ searchParams }) {
     data: { session },
   } = await supabase.auth.getSession();
   const user = session?.user;
-  if (!user) redirect('/login');
+  if (!user) return (
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: 40 }}>
+      <p>Please <a href="/login">log in</a> to view this page.</p>
+    </div>
+  );
 
   const { data: keys } = await supabase
     .from('bot_api_keys')

@@ -8,7 +8,11 @@ export default async function NewGroupPage({ searchParams }) {
   if (!supabase) redirect('/login?error=' + encodeURIComponent('Supabase env not configured'));
 
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) redirect('/login');
+  if (!session?.user) return (
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: 40 }}>
+      <p>Please <a href="/login">log in</a> to view this page.</p>
+    </div>
+  );
 
   const params = await searchParams;
   const error = params?.error ? decodeURIComponent(params.error) : '';

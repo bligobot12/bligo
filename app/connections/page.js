@@ -15,7 +15,11 @@ export default async function ConnectionsPage({ searchParams }) {
   } = await supabase.auth.getSession();
   const user = session?.user;
 
-  if (!user) redirect('/login');
+  if (!user) return (
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: 40 }}>
+      <p>Please <a href="/login">log in</a> to view this page.</p>
+    </div>
+  );
 
   const params = await searchParams;
   const q = String(params?.q || '').trim();

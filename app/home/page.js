@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 
 import Avatar from '../../components/Avatar';
 import UserCard from '../../components/UserCard';
@@ -21,7 +20,11 @@ export default async function HomePage({ searchParams }) {
   } = await supabase.auth.getSession();
   const user = session?.user;
 
-  if (!user) redirect('/login');
+  if (!user) return (
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: 40 }}>
+      <p>Please <a href="/login">log in</a> to view this page.</p>
+    </div>
+  );
 
   const { data: profile } = await supabase
     .from('profiles')

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+
 import { createClient } from '../../lib/supabase/server';
 
 export default async function NotificationsPage() {
@@ -8,7 +8,11 @@ export default async function NotificationsPage() {
     data: { session },
   } = await supabase.auth.getSession();
   const user = session?.user;
-  if (!user) redirect('/login');
+  if (!user) return (
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: 40 }}>
+      <p>Please <a href="/login">log in</a> to view this page.</p>
+    </div>
+  );
 
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 

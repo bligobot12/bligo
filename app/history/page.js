@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+
 import { createClient } from '../../lib/supabase/server';
 import PostCard from '../../components/PostCard';
 
@@ -9,7 +9,11 @@ export default async function HistoryPage({ searchParams }) {
     data: { session },
   } = await supabase.auth.getSession();
   const user = session?.user;
-  if (!user) redirect('/login');
+  if (!user) return (
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: 40 }}>
+      <p>Please <a href="/login">log in</a> to view this page.</p>
+    </div>
+  );
 
   const params = await searchParams;
   const tab = params?.tab === 'searches' ? 'searches' : 'posts';
