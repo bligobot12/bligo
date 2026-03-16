@@ -107,7 +107,17 @@ export default async function RootLayout({ children }) {
           </main>
 
           <footer className="site-footer">
-            <div className="container">© {new Date().getFullYear()} bligo. Built on Next.js + Cloudflare Pages.</div>
+            <div className="container">
+              <div style={{ marginBottom: 8 }}>© {new Date().getFullYear()} Bligo.ai · Real Connections, Curated by AI</div>
+              <div className="footer-links">
+                <Link href="/">Home</Link>
+                <Link href="/search">Search</Link>
+                <Link href="/groups">Groups</Link>
+                <Link href="/docs">Docs</Link>
+                <Link href="/contact">Contact</Link>
+                <Link href="/about">Privacy</Link>
+              </div>
+            </div>
           </footer>
           {user ? <BligoAssistant /> : null}
         </Providers>
